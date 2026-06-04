@@ -1,4 +1,6 @@
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || "http://localhost:8000";
+// "" (empty) = call the API on the same origin (single-service deploy).
+// undefined = local dev default.
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL ?? "http://localhost:8000";
 
 async function handle<T>(response: Response): Promise<T> {
   if (!response.ok) {

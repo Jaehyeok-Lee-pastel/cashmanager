@@ -1,0 +1,14 @@
+# keep the build context small & never ship local state/secrets
+**/node_modules
+**/.venv
+**/dist
+**/__pycache__
+**/*.pyc
+.git
+.claude
+.codex
+.gemini
+docs
+**/.env
+**/.env.local
+**/.env.*.local
