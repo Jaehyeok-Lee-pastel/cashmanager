@@ -4,6 +4,13 @@
 
 AI가 자연어 한 줄을 금액·카테고리·날짜로 파싱해 저장하는 개인 가계부. 카드 자동연동(MyData) 대신 **"수동인데 안 아픈 입력"** 으로 승부한다.
 
+<!-- 스크린샷: docs/images/ 에 png를 넣으면 아래가 표시됩니다 -->
+<!--
+| 기록 | 요약(예산) | 분석(AI) |
+|---|---|---|
+| ![home](docs/images/home.png) | ![summary](docs/images/summary.png) | ![analysis](docs/images/analysis.png) |
+-->
+
 - **스택**: React 19 + Vite + TypeScript / FastAPI / Supabase(Postgres) / OpenAI
 - **상태**: 작동하는 MVP (개인 dogfooding 가능). 분류 정확도 QA 176케이스 **100%**, 백엔드 pytest 57 통과.
 - **개발 방식**: Claude Code 오케스트레이션 + Codex/Gemini 위임 + Workflow 다중에이전트 설계/리뷰 (상세 [`CLAUDE.md`](CLAUDE.md))
