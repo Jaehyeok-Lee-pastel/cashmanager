@@ -13,7 +13,9 @@ AI 자연어 한 줄 입력 개인 가계부 MVP. **작동함 · 개인/지인 �
 - 월 예산(카테고리 한도, 3개월 평균 자동제안, 임계색·초과배지)
 - AI 분석(자연어 질의 + 규칙기반 인사이트 카드 + AI 코치)
 - 인증(Supabase Auth), 디자인 토큰 시스템·다크 톤·반응형
+- **PWA**(홈화면 설치 → 앱처럼 실행, 새 의존성 0)
 - 품질: 분류 QA 176케이스 **100%**, 백엔드 pytest **57 통과**, web build/typecheck 통과
+- **GitHub**: https://github.com/Jaehyeok-Lee-pastel/cashmanager (커밋·푸시 완료, 시크릿 제외)
 
 ## 3. 현재 수준 점검 (자체 평가, /10)
 | 영역 | 점수 | 메모 |
@@ -52,4 +54,10 @@ AI 자연어 한 줄 입력 개인 가계부 MVP. **작동함 · 개인/지인 �
 - 보류: 영수증 OCR(조건부 GO는 "카드연동 마트거래 품목 enrichment"로 극단 축소 시)
 
 ## 7. 권장 다음 순서
-1. 가벼운 배포(지인이 쓸 수 있게) → 2. 사용량/리텐션 로깅 + 비용 가드 → 3. 포트폴리오 정리(데모·아키텍처). 상업화는 베타 리텐션이 긍정 신호일 때만 escalate.
+1. **배포** — 폰에서 PWA로 실제 사용 가능하게 ([`DEPLOYMENT.md`](DEPLOYMENT.md): Vercel+Render+Supabase, 무료~소액) ← **다음 관문**
+2. 사용량/리텐션 로깅 + 비용 가드 → 3. 포트폴리오 정리(스크린샷·데모)
+- 상업화는 지인 베타 리텐션이 긍정 신호일 때만 escalate.
+
+## 8. 문서 맵
+- [`README.md`](../README.md) — 제품·실행 · [`CASE_STUDY.md`](CASE_STUDY.md) — 결정·배운점 · [`DEPLOYMENT.md`](DEPLOYMENT.md) — 배포
+- `.claude/docs/research/` — 수치 검증 근거 7건(경쟁분석·OCR검증·기능발굴·결정문서)
