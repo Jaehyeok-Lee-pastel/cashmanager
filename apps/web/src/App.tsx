@@ -2,6 +2,7 @@ import { useState } from "react";
 import { useAuth } from "./app/AuthProvider";
 import { Spinner } from "./components/states";
 import { LoginScreen } from "./features/auth/LoginScreen";
+import { ResetPasswordScreen } from "./features/auth/ResetPasswordScreen";
 import { AnalysisScreen } from "./features/analysis/AnalysisScreen";
 import { BudgetScreen } from "./features/budgets/BudgetScreen";
 import { CategoryScreen } from "./features/categories/CategoryScreen";
@@ -34,7 +35,7 @@ const TABS: { key: View; label: string }[] = [
 const MORE_SUBVIEWS: View[] = ["more", "budgets", "categories", "settings"];
 
 export function App() {
-  const { session, loading, signOut } = useAuth();
+  const { session, loading, recovery, signOut } = useAuth();
   const [view, setView] = useState<View>("home");
   const [month, setMonth] = useState<string>(currentMonth());
 
@@ -44,6 +45,12 @@ export function App() {
         <Spinner />
       </main>
     );
+  }
+
+  // a password-reset link takes priority over the normal app, even though the
+  // recovery session is technically signed in.
+  if (recovery) {
+    return <ResetPasswordScreen />;
   }
 
   if (!session) {

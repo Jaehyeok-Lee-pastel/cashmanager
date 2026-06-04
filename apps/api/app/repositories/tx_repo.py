@@ -25,6 +25,33 @@ def list_transactions(
     return response.data or []
 
 
+_EXPORT_PAGE = 1000
+
+
+def list_all(user_id: str) -> list[dict]:
+    """Every transaction for the user, newest first (for full data export/backup).
+
+    Pages past PostgREST's default 1000-row cap so long histories export whole.
+    """
+    rows: list[dict] = []
+    start = 0
+    while True:
+        response = (
+            get_supabase()
+            .table(_TABLE)
+            .select(_COLS)
+            .eq("user_id", user_id)
+            .order("occurred_on", desc=True)
+            .range(start, start + _EXPORT_PAGE - 1)
+            .execute()
+        )
+        batch = response.data or []
+        rows.extend(batch)
+        if len(batch) < _EXPORT_PAGE:
+            return rows
+        start += _EXPORT_PAGE
+
+
 def list_for_summary(user_id: str, month_start: str, month_end: str) -> list[dict]:
     response = (
         get_supabase()

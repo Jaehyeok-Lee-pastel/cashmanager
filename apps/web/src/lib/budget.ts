@@ -60,6 +60,8 @@ export const updateTransaction = (
 ) => apiPatch<Transaction>(`/transactions/${id}`, payload, token);
 export const deleteTransaction = (id: string, token: string) =>
   apiDelete(`/transactions/${id}`, token);
+export const exportAllTransactions = (token: string) =>
+  apiGet<Transaction[]>("/transactions/export", token);
 
 // --- Summary ---
 export const getMonthlySummary = (month: string, token: string) =>

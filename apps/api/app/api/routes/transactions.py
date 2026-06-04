@@ -30,6 +30,13 @@ async def list_transactions(
     return tx_service.list_transactions(user.user_id, month, category_id)
 
 
+# sync def: blocking paged supabase-py reads run in a threadpool.
+@router.get("/export", response_model=list[TransactionOut])
+def export_transactions(user: CurrentUserDep) -> list[TransactionOut]:
+    """Every transaction for the user — the client turns this into a CSV backup."""
+    return tx_service.export_transactions(user.user_id)
+
+
 @router.post("", response_model=TransactionOut, status_code=status.HTTP_201_CREATED)
 async def create_transaction(
     payload: TransactionCreate, user: CurrentUserDep

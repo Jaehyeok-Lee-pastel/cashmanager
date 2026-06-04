@@ -38,6 +38,22 @@ export function LoginScreen() {
     if (error) setError(error.message);
   }
 
+  async function resetPassword() {
+    setError(null);
+    setNotice(null);
+    if (!email.trim()) {
+      setError("이메일을 먼저 입력해주세요.");
+      return;
+    }
+    // Always show the same message whether or not the account exists, so this
+    // can't be used to probe which emails are registered (no enumeration).
+    const { error } = await supabase.auth.resetPasswordForEmail(email.trim(), {
+      redirectTo: window.location.origin,
+    });
+    if (error) console.warn("resetPasswordForEmail:", error.message);
+    setNotice("입력하신 이메일이 가입되어 있다면 재설정 링크를 보냈어요. 메일함을 확인해주세요.");
+  }
+
   return (
     <main className="app-shell auth">
       <h1>캐시매니저</h1>
@@ -84,6 +100,12 @@ export function LoginScreen() {
         >
           {mode === "signin" ? "계정이 없으신가요? 회원가입" : "이미 계정이 있으신가요? 로그인"}
         </button>
+
+        {mode === "signin" && (
+          <button type="button" className="link" onClick={resetPassword}>
+            비밀번호를 잊으셨나요?
+          </button>
+        )}
       </form>
     </main>
   );

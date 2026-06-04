@@ -29,6 +29,11 @@ def list_transactions(
     return [TransactionOut(**row) for row in rows]
 
 
+def export_transactions(user_id: str) -> list[TransactionOut]:
+    """All of the user's transactions (newest first) for CSV export / backup."""
+    return [TransactionOut(**row) for row in tx_repo.list_all(user_id)]
+
+
 def create_transaction(user_id: str, payload: TransactionCreate) -> TransactionOut:
     _verify_category(user_id, payload.category_id)
     fields = payload.model_dump()  # include defaults (direction, source)
