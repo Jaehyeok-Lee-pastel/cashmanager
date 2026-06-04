@@ -4,10 +4,13 @@ node_modules/
 __pycache__/
 *.pyc
 
-# Env
+# Env (never commit secrets; keep examples)
 .env
-.env.local
-.env.*.local
+.env.*
+!.env.example
+**/.env
+**/.env.*
+!**/.env.example
 
 # Build outputs
 dist/

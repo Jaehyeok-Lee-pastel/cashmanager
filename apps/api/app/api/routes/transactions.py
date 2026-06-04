@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Depends, status
 from fastapi.concurrency import run_in_threadpool
 
-from app.api.deps import CurrentUserDep
+from app.api.deps import CurrentUserDep, MonthDep
 from app.core.ratelimit import rate_limit_parse
 from app.schemas.nl import ParseRequest, ParseResult
 from app.schemas.transaction import (
@@ -25,7 +25,7 @@ async def parse_line(payload: ParseRequest, user: CurrentUserDep) -> ParseResult
 
 @router.get("", response_model=list[TransactionOut])
 async def list_transactions(
-    month: str, user: CurrentUserDep, category_id: str | None = None
+    month: MonthDep, user: CurrentUserDep, category_id: str | None = None
 ) -> list[TransactionOut]:
     return tx_service.list_transactions(user.user_id, month, category_id)
 

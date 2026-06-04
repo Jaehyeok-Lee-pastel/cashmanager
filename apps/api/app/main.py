@@ -17,16 +17,40 @@ from app.api.routes import (
 from app.core.config import settings
 
 
+_API_PREFIXES = ("/me", "/categories", "/transactions", "/summary",
+                 "/budgets", "/insights", "/assistant")
+
+
 def create_app() -> FastAPI:
-    app = FastAPI(title=settings.app_name, version="0.1.0")
+    is_prod = settings.app_env == "production"
+    app = FastAPI(
+        title=settings.app_name,
+        version="0.1.0",
+        docs_url=None if is_prod else "/docs",
+        redoc_url=None if is_prod else "/redoc",
+        openapi_url=None if is_prod else "/openapi.json",
+    )
 
     app.add_middleware(
         CORSMiddleware,
         allow_origins=settings.cors_origins_list,
         allow_credentials=True,
-        allow_methods=["*"],
-        allow_headers=["*"],
+        allow_methods=["GET", "POST", "PATCH", "PUT", "DELETE", "OPTIONS"],
+        allow_headers=["Authorization", "Content-Type"],
     )
+
+    @app.middleware("http")
+    async def security_headers(request, call_next):
+        response = await call_next(request)
+        response.headers["X-Content-Type-Options"] = "nosniff"
+        response.headers["X-Frame-Options"] = "DENY"
+        response.headers["Referrer-Policy"] = "strict-origin-when-cross-origin"
+        if is_prod:
+            response.headers["Strict-Transport-Security"] = "max-age=31536000; includeSubDomains"
+        # never let caches / service workers store personal financial responses
+        if any(request.url.path.startswith(p) for p in _API_PREFIXES):
+            response.headers["Cache-Control"] = "no-store"
+        return response
 
     app.include_router(health.router)
     app.include_router(me.router)

@@ -1,10 +1,26 @@
+import re
 from typing import Annotated
 
-from fastapi import Depends, Header, HTTPException, status
+from fastapi import Depends, Header, HTTPException, Query, status
 from jose import JWTError, jwt
 
 from app.core.config import settings
 from app.services.supabase import get_supabase
+
+_MONTH_RE = re.compile(r"^\d{4}-(0[1-9]|1[0-2])$")
+
+
+def valid_month(month: str = Query(...)) -> str:
+    """Reject malformed month params (must be YYYY-MM) before they hit the DB."""
+    if not _MONTH_RE.match(month):
+        raise HTTPException(
+            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+            detail="month는 YYYY-MM 형식이어야 합니다.",
+        )
+    return month
+
+
+MonthDep = Annotated[str, Depends(valid_month)]
 
 
 class CurrentUser:
@@ -26,7 +42,8 @@ def _verify_token(token: str) -> dict:
                 settings.supabase_jwt_secret,
                 algorithms=["HS256"],
                 audience="authenticated",
-                options={"require": ["exp", "sub"]},
+                issuer=f"{settings.supabase_url}/auth/v1",
+                options={"require": ["exp", "sub", "iss"]},
             )
         except JWTError:
             pass

@@ -1,4 +1,4 @@
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 
 
 class ProfileOut(BaseModel):
@@ -8,4 +8,4 @@ class ProfileOut(BaseModel):
 
 
 class ProfileUpdate(BaseModel):
-    display_name: str | None = None
+    display_name: str | None = Field(default=None, max_length=50)

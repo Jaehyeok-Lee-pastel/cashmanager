@@ -1,4 +1,5 @@
 import logging
+import time
 
 from app.core.timeutils import prev_month
 from app.schemas.analysis import InsightCard
@@ -7,6 +8,11 @@ from app.services import summary_service
 logger = logging.getLogger(__name__)
 
 _WARN_RATIO = 0.8
+
+# cost guard: cache the LLM coach so repeated loads of the same month/data
+# don't re-bill OpenAI. key -> (expires_monotonic, card)
+_COACH_TTL = 3600.0
+_coach_cache: dict[str, tuple[float, InsightCard]] = {}
 
 
 def _won(n: int) -> str:
@@ -56,20 +62,29 @@ def get_insights(user_id: str, month: str) -> list[InsightCard]:
             detail=f"{_won(top.sum_minor)} ({round(top.ratio * 100)}%)",
         ))
 
-    # 4) optional one-line AI coaching (best-effort, never blocks rule-based cards)
-    coach = _coach_line(summary, cards)
+    # 4) optional one-line AI coaching (best-effort, cached to avoid re-billing)
+    coach = _coach_line(user_id, month, summary, cards)
     if coach:
         cards.append(coach)
 
     return cards
 
 
-def _coach_line(summary, cards) -> InsightCard | None:
+def _coach_line(user_id, month, summary, cards) -> InsightCard | None:
     if not summary.by_category:
         return None
+
+    # cache by (user, month, data signature) so unchanged data => no LLM call
+    sig = f"{summary.total_expense}:{len(summary.by_category)}"
+    key = f"{user_id}|{month}|{sig}"
+    now = time.monotonic()
+    cached = _coach_cache.get(key)
+    if cached and cached[0] > now:
+        return cached[1]
+
     from app.services import openai_service
 
-    facts = "; ".join(f"{c.name} {c.sum_minor}원" for c in summary.by_category[:5])
+    facts = "; ".join(f'"{c.name}" {c.sum_minor}원' for c in summary.by_category[:5])
     over = [c.title for c in cards if c.severity == "alert"]
     system = (
         "너는 가계부 코치다. 아래 사실(데이터)만 근거로 한국어 한 문장의 짧고 따뜻한 코칭을 한다. "
@@ -78,7 +93,9 @@ def _coach_line(summary, cards) -> InsightCard | None:
     user = f"이번 달 총지출 {summary.total_expense}원. 카테고리: {facts}. 초과 예산: {over or '없음'}."
     try:
         text = openai_service.complete(system, user, max_tokens=80)
-        return InsightCard(type="coach", severity="info", title="AI 코치", detail=text.strip())
+        card = InsightCard(type="coach", severity="info", title="AI 코치", detail=text.strip())
+        _coach_cache[key] = (now + _COACH_TTL, card)
+        return card
     except Exception as exc:  # noqa: BLE001 — coaching is optional
         logger.warning("coach line failed: %s", exc)
         return None
