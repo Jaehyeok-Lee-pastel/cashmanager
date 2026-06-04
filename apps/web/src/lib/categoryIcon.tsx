@@ -2,6 +2,7 @@ import {
   Bus,
   Clapperboard,
   Coffee,
+  CreditCard,
   Gift,
   GraduationCap,
   Home,
@@ -27,6 +28,7 @@ const ICON_BY_NAME: Record<string, LucideIcon> = {
   "주거/통신": Home,
   "경조사": Gift,
   "교육": GraduationCap,
+  "카드대금": CreditCard,
   "기타지출": Package,
   "수입": Wallet,
 };
