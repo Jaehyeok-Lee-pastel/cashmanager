@@ -88,8 +88,8 @@ export function ParseConfirmCard({ result, categories, onSaved, onCancel }: Prop
         <label htmlFor="cc-amount">금액</label>
         <input
           id="cc-amount"
-          type="number"
-          inputMode="numeric"
+          type="text"
+          inputMode="decimal"
           className={isAmbiguous("amount") ? "ambiguous" : ""}
           value={amount}
           onChange={(e) => setAmount(e.target.value)}

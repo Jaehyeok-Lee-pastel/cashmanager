@@ -43,17 +43,6 @@ export function HomeScreen({ month }: { month: string }) {
         <strong className="tabular">{formatKRW(monthExpense)}</strong>
       </header>
 
-      <QuickInputBar onParsed={setPending} />
-
-      {pending && (
-        <ParseConfirmCard
-          result={pending}
-          categories={categories ?? []}
-          onSaved={onSaved}
-          onCancel={() => setPending(null)}
-        />
-      )}
-
       <ThreeState
         loading={loading}
         error={error}
@@ -64,7 +53,7 @@ export function HomeScreen({ month }: { month: string }) {
           <EmptyState
             emoji="✍️"
             title="아직 기록이 없어요"
-            message="위에 한 줄 적거나, 아래 예시를 눌러보세요."
+            message="아래에 한 줄 적거나, 예시를 눌러보세요."
           >
             <div className="empty-chips">
               {EXAMPLES.map((ex) => (
@@ -89,6 +78,18 @@ export function HomeScreen({ month }: { month: string }) {
           />
         )}
       </ThreeState>
+
+      <div className="input-dock">
+        {pending && (
+          <ParseConfirmCard
+            result={pending}
+            categories={categories ?? []}
+            onSaved={onSaved}
+            onCancel={() => setPending(null)}
+          />
+        )}
+        <QuickInputBar onParsed={setPending} />
+      </div>
     </div>
   );
 }

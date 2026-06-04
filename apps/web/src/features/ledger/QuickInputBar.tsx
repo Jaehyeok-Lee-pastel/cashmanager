@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { useToken } from "../../app/AuthProvider";
 import { parseLine } from "../../lib/budget";
 import type { ParseResult } from "../../lib/types";
@@ -9,6 +9,7 @@ interface Props {
 
 export function QuickInputBar({ onParsed }: Props) {
   const token = useToken();
+  const inputRef = useRef<HTMLInputElement>(null);
   const [text, setText] = useState("");
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -23,6 +24,7 @@ export function QuickInputBar({ onParsed }: Props) {
       const result = await parseLine(trimmed, token);
       onParsed(result);
       setText("");
+      inputRef.current?.focus(); // keep keyboard up for continuous logging
     } catch (err) {
       setError(err instanceof Error ? err.message : "분석에 실패했습니다.");
     } finally {
@@ -33,10 +35,15 @@ export function QuickInputBar({ onParsed }: Props) {
   return (
     <form className="quick-input" onSubmit={submit}>
       <input
+        ref={inputRef}
         type="text"
         aria-label="지출 한 줄 입력"
-        placeholder="예: 스벅 아메리카노 4900"
+        placeholder="예: 어제 김밥 4500 (말하거나 입력)"
         maxLength={200}
+        enterKeyHint="send"
+        autoCapitalize="off"
+        autoCorrect="off"
+        spellCheck={false}
         value={text}
         onChange={(e) => setText(e.target.value)}
         autoFocus

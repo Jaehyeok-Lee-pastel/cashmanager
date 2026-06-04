@@ -58,6 +58,9 @@ export function AnalysisScreen({ month }: { month: string }) {
           aria-label="가계부에게 질문"
           placeholder="예: 이번 달 카페에 얼마 썼어?"
           maxLength={200}
+          enterKeyHint="send"
+          autoCapitalize="off"
+          autoCorrect="off"
           value={question}
           onChange={(e) => setQuestion(e.target.value)}
         />

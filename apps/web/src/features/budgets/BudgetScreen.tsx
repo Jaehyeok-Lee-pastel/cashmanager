@@ -90,8 +90,8 @@ export function BudgetScreen() {
                 {c.name}
               </span>
               <input
-                type="number"
-                inputMode="numeric"
+                type="text"
+                inputMode="decimal"
                 className="budget-input"
                 aria-label={`${c.name} 예산`}
                 placeholder="없음"

@@ -96,16 +96,23 @@
   --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
 
   /* --- a11y --- */
-  --tap-target: 44px;
+  --tap-target: 48px;
+  --safe-top: env(safe-area-inset-top, 0px);
+  --safe-bottom: env(safe-area-inset-bottom, 0px);
 
   /* --- layout --- */
   --app-width: 760px;
+  --nav-height: 56px;
 }
 
 * {
   box-sizing: border-box;
 }
 
+html,
+body {
+  overscroll-behavior: none; /* kill rubber-band / accidental pull-to-refresh */
+}
 body {
   margin: 0;
   font-family: var(--font-sans);
@@ -114,6 +121,28 @@ body {
   background: var(--color-bg);
   color: var(--color-text-1);
   -webkit-font-smoothing: antialiased;
+}
+
+/* native-feeling taps: no grey highlight, no 300ms delay, no long-press callout */
+button,
+.chip,
+.bottom-nav button,
+.icon-btn,
+a {
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+  -webkit-touch-callout: none;
+  user-select: none;
+}
+/* but keep text selectable where it's content */
+input,
+textarea,
+.tx-memo,
+.answer-card,
+.insight-detail {
+  -webkit-user-select: text;
+  user-select: text;
+  -webkit-touch-callout: default;
 }
 
 /* ambient gradient orbs behind everything (depth on flat dark bg) */
@@ -161,7 +190,7 @@ h2 {
 .app-shell {
   max-width: var(--app-width);
   margin: 0 auto;
-  padding: var(--space-6) var(--space-5);
+  padding: max(var(--space-6), var(--safe-top)) var(--space-5) var(--space-6);
 }
 
 .top-bar {
@@ -190,7 +219,7 @@ h2 {
   backdrop-filter: var(--glass-blur);
   -webkit-backdrop-filter: var(--glass-blur);
   border-top: 1px solid var(--color-hairline);
-  padding-bottom: max(0px, env(safe-area-inset-bottom));
+  padding-bottom: max(var(--space-2), var(--safe-bottom));
   z-index: 10;
 }
 .bottom-nav button {
@@ -370,10 +399,8 @@ label {
   font-weight: 700;
 }
 
-/* sticky glass quick-input */
+/* glass quick-input (sits inside the bottom dock on Home) */
 .quick-input {
-  position: sticky;
-  top: var(--space-2);
   display: flex;
   gap: var(--space-2);
   padding: var(--space-2);
@@ -382,7 +409,30 @@ label {
   -webkit-backdrop-filter: var(--glass-blur);
   border: 1px solid var(--color-hairline);
   border-radius: var(--radius-lg);
-  z-index: 5;
+}
+
+/* bottom dock: thumb-zone input + (when present) the confirm card above it */
+.input-dock {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: calc(var(--nav-height) + var(--safe-bottom));
+  z-index: 6;
+  max-width: var(--app-width);
+  margin: 0 auto;
+  padding: 0 var(--space-5) var(--space-2);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+.input-dock .confirm-card {
+  margin-top: 0;
+  max-height: 60vh;
+  overflow-y: auto;
+}
+/* clear space so the list scrolls above the fixed input dock */
+.home {
+  padding-bottom: 88px;
 }
 .quick-input input {
   flex: 1;
@@ -871,7 +921,7 @@ label {
    read as an intentional app surface rather than void. (no 2-column / full-width) */
 @media (min-width: 840px) {
   .app-shell {
-    min-height: 100vh;
+    min-height: 100dvh;
     border-inline: 1px solid var(--color-hairline);
     background: rgba(255, 255, 255, 0.015);
   }
