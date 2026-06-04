@@ -1,0 +1,14 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(powershell:*)",
+      "Bash(cmd:*)",
+      "Bash(dir:*)",
+      "Bash(pip install:*)",
+      "WebSearch"
+    ]
+  },
+  "worktree": {
+    "bgIsolation": "none"
+  }
+}

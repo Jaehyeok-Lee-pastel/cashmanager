@@ -1,0 +1,24 @@
+# Codex CLI Project Configuration
+
+#:schema https://developers.openai.com/codex/config-schema.json
+
+# Default model configuration
+model = "gpt-5.5"
+model_reasoning_effort = "high"
+model_reasoning_summary = "detailed"
+
+# Optional: larger context
+model_context_window = 400000
+model_auto_compact_token_limit = 350000
+
+# Approval policy
+approval_policy = "on-request"
+
+# Feature toggles
+[features]
+skills = true
+
+# Skills configuration
+[[skills.config]]
+enabled = true
+path = ".codex/skills/context-loader"

@@ -1,0 +1,131 @@
+from datetime import date
+
+import pytest
+
+from app.services import nl_preprocess
+
+TODAY = date(2026, 6, 2)  # Tuesday
+
+
+@pytest.mark.parametrize(
+    "text,expected",
+    [
+        ("스벅 아메리카노 4900", 4900),
+        ("당근마켓 장보기 32000", 32000),
+        ("택시 4,900원", 4900),
+        ("만원", 10000),
+        ("3만2천", 32000),
+        ("3만", 30000),
+        ("2천", 2000),
+        ("4.9천", 4900),
+        ("오천", 5000),
+        ("이만원", 20000),
+        ("커피 3천원", 3000),
+        ("만이천원", 12000),
+        ("맥날 만이천원", 12000),
+        ("이만삼천", 23000),
+        ("백만원", 1000000),
+        ("삼만오천원", 35000),
+    ],
+)
+def test_parse_amount(text: str, expected: int):
+    assert nl_preprocess.parse_amount(text) == expected
+
+
+def test_parse_amount_none_when_no_number():
+    assert nl_preprocess.parse_amount("커피 마심") is None
+
+
+@pytest.mark.parametrize(
+    "text",
+    [
+        "만나서 커피",      # '만' inside a word must not become 10000
+        "친구 만남",        # no numeral adjacent to 만 -> no phantom amount
+        "아메리카노 3잔",   # counter word, not an amount
+        "6월 30000 커피",   # amount not trailing -> defer to LLM, never corrupt
+    ],
+)
+def test_parse_amount_no_phantom(text: str):
+    assert nl_preprocess.parse_amount(text) is None
+
+
+@pytest.mark.parametrize(
+    "text,expected",
+    [
+        ("오늘 커피 4900", date(2026, 6, 2)),
+        ("어제 택시 12000", date(2026, 6, 1)),
+        ("그제 점심 9000", date(2026, 5, 31)),
+        ("3일전 마트 20000", date(2026, 5, 30)),
+        ("5월3일 영화 15000", date(2026, 5, 3)),
+        ("5/3 커피 4000", date(2026, 5, 3)),
+    ],
+)
+def test_parse_date(text: str, expected: date):
+    resolved, _ = nl_preprocess.parse_date(text, TODAY)
+    assert resolved == expected
+
+
+def test_parse_date_weekday_this_week():
+    # TODAY is Tue 2026-06-02; most recent Monday is 2026-06-01.
+    resolved, _ = nl_preprocess.parse_date("월요일 점심 9000", TODAY)
+    assert resolved == date(2026, 6, 1)
+
+
+def test_parse_date_last_week():
+    # 지난주 금요일 -> Friday of previous week = 2026-05-29.
+    resolved, _ = nl_preprocess.parse_date("지난주 금요일 회식 50000", TODAY)
+    assert resolved == date(2026, 5, 29)
+
+
+def test_parse_date_this_week_future_weekday():
+    # 이번주 수요일 -> this week's Wednesday = 2026-06-03 (not last week's).
+    resolved, _ = nl_preprocess.parse_date("이번주 수요일 점심 9000", TODAY)
+    assert resolved == date(2026, 6, 3)
+
+
+def test_parse_date_bare_month_does_not_eat_amount():
+    # "6월" with no 일 must NOT be parsed as a date (would steal amount digits).
+    resolved, remainder = nl_preprocess.parse_date("6월 30000 커피", TODAY)
+    assert resolved is None
+    assert "30000" in remainder
+
+
+def test_parse_date_none_when_absent():
+    resolved, remainder = nl_preprocess.parse_date("커피 4900", TODAY)
+    assert resolved is None
+    assert remainder == "커피 4900"
+
+
+def test_parse_date_strips_expression():
+    _, remainder = nl_preprocess.parse_date("어제 택시 12000", TODAY)
+    assert "어제" not in remainder
+    assert "택시" in remainder
+
+
+@pytest.mark.parametrize(
+    "text,trivial",
+    [
+        ("4900", True),
+        ("4,900원", True),
+        ("스벅 4900", False),  # merchant present -> must reach LLM/map
+        ("맥날 5500", False),
+        ("영화 15000", False),
+        ("스벅 아메리카노 4900", False),
+    ],
+)
+def test_is_trivial(text: str, trivial: bool):
+    assert nl_preprocess.is_trivial(text) is trivial
+
+
+@pytest.mark.parametrize(
+    "text,keyword",
+    [
+        ("맥날 5500", "맥날"),
+        ("어제 택시 12000", "택시"),
+        ("스벅 아메리카노 4900", "스벅"),
+        ("지난주 금요일 회식 50000", "회식"),
+        ("5000", None),
+    ],
+)
+def test_merchant_keyword(text: str, keyword: str | None):
+    assert nl_preprocess.merchant_keyword(text) == keyword

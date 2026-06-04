@@ -1,0 +1,34 @@
+{
+  "model": {
+    "name": "gemini-3-flash-preview",
+    "thinkingLevel": "high"
+  },
+
+  "context": {
+    "fileName": [
+      "GEMINI.md",
+      "AGENTS.md",
+      "CLAUDE.md"
+    ],
+    "discoveryMaxDirs": 200,
+    "fileFiltering": {
+      "respectGitIgnore": true,
+      "respectGeminiIgnore": true
+    }
+  },
+
+  "tools": {
+    "sandbox": false,
+    "autoAccept": false
+  },
+
+  "experimental": {
+    "skills": true,
+    "enableAgents": true,
+    "previewFeatures": true
+  },
+
+  "skills": {
+    "disabled": []
+  }
+}
