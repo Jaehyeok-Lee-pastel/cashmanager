@@ -929,6 +929,18 @@ label {
 .history-search {
   margin: var(--space-3) 0;
 }
+.day-filter {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  margin-bottom: var(--space-3);
+}
+.day-input {
+  flex: 1;
+}
+.day-filter .ghost {
+  white-space: nowrap;
+}
 .segmented {
   display: flex;
   gap: var(--space-1);

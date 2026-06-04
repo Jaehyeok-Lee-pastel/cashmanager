@@ -29,13 +29,21 @@ export function HistoryScreen({ month, onMonthChange }: Props) {
   const [query, setQuery] = useState("");
   const [dir, setDir] = useState<DirFilter>("all");
   const [catFilter, setCatFilter] = useState<Set<string>>(new Set());
+  const [day, setDay] = useState(""); // "" = whole month, else "YYYY-MM-DD"
 
   const nameOf = (id: string | null) =>
     categories?.find((c) => c.id === id)?.name ?? "미분류";
 
+  // picking a day in another month loads that month, then narrows to that day
+  function pickDay(value: string) {
+    setDay(value);
+    if (value && value.slice(0, 7) !== month) onMonthChange(value.slice(0, 7));
+  }
+
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase();
     return (transactions ?? []).filter((t) => {
+      if (day && t.occurred_on !== day) return false;
       if (dir !== "all" && t.direction !== dir) return false;
       if (catFilter.size > 0 && !catFilter.has(t.category_id ?? "")) return false;
       if (q) {
@@ -44,10 +52,11 @@ export function HistoryScreen({ month, onMonthChange }: Props) {
       }
       return true;
     });
-  }, [transactions, query, dir, catFilter, categories]);
+  }, [transactions, query, dir, catFilter, day, categories]);
 
   const groups = useMemo(() => groupByDate(filtered), [filtered]);
-  const hasFilter = query.trim() !== "" || dir !== "all" || catFilter.size > 0;
+  const hasFilter =
+    query.trim() !== "" || dir !== "all" || catFilter.size > 0 || day !== "";
 
   function toggleCat(id: string) {
     setCatFilter((prev) => {
@@ -79,6 +88,21 @@ export function HistoryScreen({ month, onMonthChange }: Props) {
         value={query}
         onChange={(e) => setQuery(e.target.value)}
       />
+
+      <div className="day-filter">
+        <input
+          type="date"
+          className="day-input"
+          aria-label="일자 선택"
+          value={day}
+          onChange={(e) => pickDay(e.target.value)}
+        />
+        {day && (
+          <button type="button" className="ghost" onClick={() => setDay("")}>
+            전체 보기
+          </button>
+        )}
+      </div>
 
       <div className="segmented" role="group" aria-label="유형 필터">
         {(["all", "expense", "income"] as const).map((d) => (
@@ -122,6 +146,7 @@ export function HistoryScreen({ month, onMonthChange }: Props) {
                   setQuery("");
                   setDir("all");
                   setCatFilter(new Set());
+                  setDay("");
                 }}
               >
                 필터 초기화
