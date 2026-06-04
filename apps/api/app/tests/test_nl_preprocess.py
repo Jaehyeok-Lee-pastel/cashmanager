@@ -83,6 +83,19 @@ def test_parse_date_this_week_future_weekday():
     assert resolved == date(2026, 6, 3)
 
 
+def test_parse_date_future_md_falls_back_to_last_year():
+    # "12/31" typed on 2026-06-02 means last year, not ~7 months in the future.
+    resolved, _ = nl_preprocess.parse_date("12/31 선물 30000", TODAY)
+    assert resolved == date(2025, 12, 31)
+
+
+def test_parse_date_md_year_wrap_in_january():
+    jan = date(2026, 1, 5)
+    # "12월30일" typed in January -> previous December, not this year's future.
+    resolved, _ = nl_preprocess.parse_date("12월30일 외식 20000", jan)
+    assert resolved == date(2025, 12, 30)
+
+
 def test_parse_date_bare_month_does_not_eat_amount():
     # "6월" with no 일 must NOT be parsed as a date (would steal amount digits).
     resolved, remainder = nl_preprocess.parse_date("6월 30000 커피", TODAY)

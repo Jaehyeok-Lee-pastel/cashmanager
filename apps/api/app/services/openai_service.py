@@ -4,6 +4,8 @@ Single creation point for the OpenAI client. Uses Structured Outputs (strict
 JSON schema) so the model can only return valid, in-vocabulary results.
 """
 
+import json
+import time
 from datetime import date
 from functools import lru_cache
 
@@ -105,9 +107,6 @@ def parse_line(
     Returns keys: amount, direction, category, memo, occurred_on, confidence,
     plus 'latency_ms' and 'model' metadata.
     """
-    import json
-    import time
-
     user_parts = [
         f"오늘 날짜(KST): {today.isoformat()}",
         f"카테고리 목록: {', '.join(categories)}",

@@ -68,7 +68,7 @@ export function LoginScreen() {
         />
 
         {error && <p className="status status-error" role="alert">{error}</p>}
-        {notice && <p className="status status-ok">{notice}</p>}
+        {notice && <p className="status status-ok" role="status">{notice}</p>}
 
         <button type="submit" disabled={busy}>
           {busy ? "처리 중…" : mode === "signin" ? "로그인" : "가입하기"}

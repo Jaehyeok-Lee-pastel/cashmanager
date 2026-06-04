@@ -3,6 +3,7 @@ import time
 
 from app.core.timeutils import prev_month
 from app.schemas.analysis import InsightCard
+from app.schemas.summary import MonthlySummaryOut
 from app.services import summary_service
 
 logger = logging.getLogger(__name__)
@@ -70,7 +71,12 @@ def get_insights(user_id: str, month: str) -> list[InsightCard]:
     return cards
 
 
-def _coach_line(user_id, month, summary, cards) -> InsightCard | None:
+def _coach_line(
+    user_id: str,
+    month: str,
+    summary: MonthlySummaryOut,
+    cards: list[InsightCard],
+) -> InsightCard | None:
     if not summary.by_category:
         return None
 
@@ -78,6 +84,9 @@ def _coach_line(user_id, month, summary, cards) -> InsightCard | None:
     sig = f"{summary.total_expense}:{len(summary.by_category)}"
     key = f"{user_id}|{month}|{sig}"
     now = time.monotonic()
+    # drop expired entries so the in-memory cache stays bounded
+    for stale in [k for k, v in _coach_cache.items() if v[0] <= now]:
+        del _coach_cache[stale]
     cached = _coach_cache.get(key)
     if cached and cached[0] > now:
         return cached[1]

@@ -13,11 +13,21 @@ export function colorForCategory(id: string | null): string {
   return `var(--cat-${(hash % 8) + 1})`;
 }
 
+/** Shift "now" to a Date whose UTC fields read as the KST wall clock. */
+function nowInKST(): Date {
+  const now = new Date();
+  return new Date(now.getTime() + (now.getTimezoneOffset() + 540) * 60_000);
+}
+
 /** Current month as "YYYY-MM" in KST. */
 export function currentMonth(): string {
-  const now = new Date();
-  const kst = new Date(now.getTime() + (now.getTimezoneOffset() + 540) * 60_000);
+  const kst = nowInKST();
   return `${kst.getFullYear()}-${String(kst.getMonth() + 1).padStart(2, "0")}`;
+}
+
+/** Today as "YYYY-MM-DD" in KST (avoids the UTC off-by-one of toISOString). */
+export function todayKST(): string {
+  return nowInKST().toISOString().slice(0, 10);
 }
 
 /** Shift a "YYYY-MM" month by delta months. */

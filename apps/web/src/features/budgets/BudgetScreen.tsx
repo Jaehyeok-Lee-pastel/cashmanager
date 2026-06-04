@@ -73,7 +73,7 @@ export function BudgetScreen() {
       <button type="button" className="ghost" onClick={applySuggestions} disabled={busy}>
         최근 3개월 평균으로 자동 채우기
       </button>
-      {notice && <p className="status">{notice}</p>}
+      {notice && <p className="status" role="status">{notice}</p>}
 
       <ul className="budget-list">
         {(categories ?? []).map((c) => {

@@ -59,7 +59,6 @@ export async function apiDelete(path: string, token?: string): Promise<void> {
     method: "DELETE",
     headers: authHeaders(token)
   });
-  if (!response.ok) {
-    throw new Error(`API request failed: ${response.status}`);
-  }
+  // 204 has no body, so only route errors through handle() (which parses detail).
+  if (!response.ok) await handle<void>(response);
 }

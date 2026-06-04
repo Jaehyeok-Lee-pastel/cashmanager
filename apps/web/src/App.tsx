@@ -78,6 +78,7 @@ export function App() {
             key={tab.key}
             type="button"
             className={activeTab === tab.key ? "active" : ""}
+            aria-current={activeTab === tab.key ? "page" : undefined}
             onClick={() => setView(tab.key)}
           >
             {tab.label}

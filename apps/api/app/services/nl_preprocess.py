@@ -121,17 +121,30 @@ def parse_date(text: str, today: date) -> tuple[date | None, str]:
     # M월D일 — require 일 so amounts after a bare "M월" are not eaten.
     md = re.search(r"(\d{1,2})\s*월\s*(\d{1,2})\s*일", text)
     if md:
-        resolved = _safe_date(today.year, int(md.group(1)), int(md.group(2)))
+        resolved = _md_in_past(int(md.group(1)), int(md.group(2)), today)
         if resolved:
             return resolved, text[: md.start()] + text[md.end():]
 
     slash = re.search(r"\b(\d{1,2})/(\d{1,2})\b", text)
     if slash:
-        resolved = _safe_date(today.year, int(slash.group(1)), int(slash.group(2)))
+        resolved = _md_in_past(int(slash.group(1)), int(slash.group(2)), today)
         if resolved:
             return resolved, text[: slash.start()] + text[slash.end():]
 
     return None, text
+
+
+def _md_in_past(month: int, day: int, today: date) -> date | None:
+    """Resolve a bare month/day to the most recent PAST occurrence.
+
+    A ledger records what already happened, so "12/31" typed in January means
+    last year, not eleven months in the future. If this year's date is still
+    ahead of today, fall back to last year.
+    """
+    resolved = _safe_date(today.year, month, day)
+    if resolved and resolved > today:
+        return _safe_date(today.year - 1, month, day)
+    return resolved
 
 
 def _weekday_mode(prefix: str | None) -> str:

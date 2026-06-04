@@ -33,8 +33,13 @@ export function CategoryScreen() {
   }
 
   async function remove(id: string) {
-    await archiveCategory(id, token);
-    reload();
+    setFormError(null);
+    try {
+      await archiveCategory(id, token);
+      reload();
+    } catch (err) {
+      setFormError(err instanceof Error ? err.message : "삭제에 실패했습니다.");
+    }
   }
 
   return (

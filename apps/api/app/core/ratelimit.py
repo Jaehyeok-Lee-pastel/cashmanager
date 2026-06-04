@@ -36,7 +36,7 @@ def rate_limiter(per_minute: int, per_day: int) -> Callable[..., None]:
         if len(dq) >= per_day:
             raise HTTPException(
                 status_code=status.HTTP_429_TOO_MANY_REQUESTS,
-                detail="오늘 사용량 한도를 초과했습니다. 내일 다시 시도해주세요.",
+                detail="오늘 사용량 한도를 초과했습니다. 잠시 후 다시 시도해주세요.",
             )
         dq.append(now)
 

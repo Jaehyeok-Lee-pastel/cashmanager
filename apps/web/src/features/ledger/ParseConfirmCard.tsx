@@ -1,7 +1,7 @@
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useToken } from "../../app/AuthProvider";
 import { createTransaction } from "../../lib/budget";
-import { formatKRW } from "../../lib/money";
+import { formatKRW, todayKST } from "../../lib/money";
 import type {
   AmbiguousField,
   Category,
@@ -25,11 +25,16 @@ export function ParseConfirmCard({ result, categories, onSaved, onCancel }: Prop
   const [categoryId, setCategoryId] = useState<string>(result.category_id ?? "");
   const [direction, setDirection] = useState<Direction>(result.direction);
   const [memo, setMemo] = useState<string>(result.memo ?? "");
-  const [date, setDate] = useState<string>(
-    result.occurred_on ?? new Date().toISOString().slice(0, 10),
-  );
+  const [date, setDate] = useState<string>(result.occurred_on ?? todayKST());
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const amountRef = useRef<HTMLInputElement>(null);
+
+  // move focus into the card when it appears so keyboard/screen-reader users
+  // land on it instead of staying on the input bar below.
+  useEffect(() => {
+    amountRef.current?.focus();
+  }, []);
 
   const isAmbiguous = (f: AmbiguousField) => result.ambiguous_fields.includes(f);
   const highConfidence = result.confidence >= 0.8 && !result.needs_manual;
@@ -74,6 +79,8 @@ export function ParseConfirmCard({ result, categories, onSaved, onCancel }: Prop
   return (
     <div
       className={`confirm-card ${highConfidence ? "confident" : "low"}`}
+      role="group"
+      aria-label="거래 확인"
     >
       {highConfidence ? (
         <span className="confidence-badge high">✓ 확실</span>
@@ -87,6 +94,7 @@ export function ParseConfirmCard({ result, categories, onSaved, onCancel }: Prop
       <div className="field">
         <label htmlFor="cc-amount">금액</label>
         <input
+          ref={amountRef}
           id="cc-amount"
           type="text"
           inputMode="decimal"

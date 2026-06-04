@@ -3,10 +3,11 @@ from typing import Literal
 from pydantic import BaseModel, Field
 
 Severity = Literal["alert", "warn", "info"]
+InsightType = Literal["budget", "top", "trend", "coach"]
 
 
 class InsightCard(BaseModel):
-    type: str  # "budget" | "top" | "trend" | "coach"
+    type: InsightType
     severity: Severity
     title: str
     detail: str

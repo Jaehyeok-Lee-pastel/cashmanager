@@ -86,7 +86,9 @@ export function AnalysisScreen({ month }: { month: string }) {
       </div>
 
       {(asking || answer) && (
-        <div className="answer-card">{asking ? "생각 중…" : answer}</div>
+        <div className="answer-card" role="status" aria-live="polite">
+          {asking ? "생각 중…" : answer}
+        </div>
       )}
 
       <h3 className="section-label">이번 달 인사이트</h3>

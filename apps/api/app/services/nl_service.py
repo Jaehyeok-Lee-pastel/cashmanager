@@ -158,7 +158,7 @@ def _build_result(
 
     occurred_on = pre_date or _coerce_date(parsed.get("occurred_on"), today)
     amount = pre_amount if pre_amount is not None else parsed.get("amount")
-    if amount is None:
+    if not amount:  # None or 0 (the LLM can return 0 for the required integer field)
         ambiguous.insert(0, "amount")
 
     return ParseResult(

@@ -1,6 +1,6 @@
 from fastapi import HTTPException, status
 
-from app.core.timeutils import month_bounds, today_kst
+from app.core.timeutils import month_bounds, prev_month, today_kst
 from app.repositories import budget_repo, category_repo, tx_repo
 from app.schemas.budget import BudgetItem, BudgetOut, BudgetSuggestion
 
@@ -62,13 +62,7 @@ def suggest_budgets(user_id: str) -> list[BudgetSuggestion]:
 
 
 def _last_complete_months(count: int) -> list[str]:
+    """The `count` complete months before the current one (most recent first)."""
     today = today_kst()
-    year, mon = today.year, today.month
-    months: list[str] = []
-    for _ in range(count):
-        mon -= 1
-        if mon == 0:
-            mon = 12
-            year -= 1
-        months.append(f"{year:04d}-{mon:02d}")
-    return months
+    current = f"{today.year:04d}-{today.month:02d}"
+    return [prev_month(current, back) for back in range(1, count + 1)]

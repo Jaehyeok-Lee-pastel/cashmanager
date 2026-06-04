@@ -110,6 +110,7 @@ export function HistoryScreen({ month, onMonthChange }: Props) {
             key={d}
             type="button"
             className={dir === d ? "active" : ""}
+            aria-pressed={dir === d}
             onClick={() => setDir(d)}
           >
             {d === "all" ? "전체" : d === "expense" ? "지출" : "수입"}
@@ -123,6 +124,7 @@ export function HistoryScreen({ month, onMonthChange }: Props) {
             key={c.id}
             type="button"
             className={`chip ${catFilter.has(c.id) ? "on" : ""}`}
+            aria-pressed={catFilter.has(c.id)}
             onClick={() => toggleCat(c.id)}
           >
             {c.name}
@@ -134,7 +136,7 @@ export function HistoryScreen({ month, onMonthChange }: Props) {
       {error && <ErrorState message={error} onRetry={reload} />}
 
       {!loading && !error && groups.length === 0 && (
-        <div className="empty-state">
+        <div className="empty-state" aria-live="polite">
           <span className="emoji" aria-hidden>🔍</span>
           {hasFilter ? (
             <>

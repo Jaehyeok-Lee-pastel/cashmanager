@@ -71,7 +71,9 @@ export function HomeScreen({ month }: { month: string }) {
     try {
       handleParsed(await parseLine(text, token));
     } catch {
-      // ignore; user can type manually
+      // parse failed (token expired / network) — tell the user instead of
+      // letting the chip feel dead.
+      showSnackbar({ message: "분석에 실패했어요. 직접 입력해주세요." });
     }
   }
 

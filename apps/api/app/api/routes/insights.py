@@ -8,6 +8,8 @@ from app.services import insights_service
 router = APIRouter(tags=["insights"])
 
 
+# sync def: blocking supabase-py + optional OpenAI call run in a threadpool,
+# keeping the event loop free.
 @router.get("/insights", response_model=list[InsightCard], dependencies=[Depends(rate_limit_insights)])
-async def get_insights(month: MonthDep, user: CurrentUserDep) -> list[InsightCard]:
+def get_insights(month: MonthDep, user: CurrentUserDep) -> list[InsightCard]:
     return insights_service.get_insights(user.user_id, month)
