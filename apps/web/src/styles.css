@@ -812,6 +812,118 @@ label {
   color: var(--color-text-2);
   font-variant-numeric: tabular-nums;
 }
+
+/* --- top bar actions --- */
+.top-actions {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+/* --- snackbar (undo) --- */
+.snackbar {
+  position: fixed;
+  left: 50%;
+  transform: translateX(-50%);
+  bottom: calc(var(--nav-height) + var(--safe-bottom) + 84px);
+  z-index: 20;
+  width: min(calc(var(--app-width) - 2 * var(--space-5)), calc(100vw - 2 * var(--space-4)));
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  background: var(--color-surface-3);
+  border: 1px solid var(--color-hairline);
+  border-radius: var(--radius-md);
+  padding: var(--space-3) var(--space-4);
+  box-shadow: var(--shadow-2);
+  animation: slide-up var(--motion-base) var(--ease-out);
+}
+.snackbar-msg {
+  font-size: var(--text-sm);
+  font-variant-numeric: tabular-nums;
+}
+.snackbar-action {
+  background: none;
+  border: none;
+  color: var(--color-accent);
+  font-weight: 700;
+  min-height: auto;
+  padding: var(--space-1) var(--space-2);
+  white-space: nowrap;
+}
+
+/* --- recent quick chips (home dock) --- */
+.recent-chips {
+  display: flex;
+  gap: var(--space-2);
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+.recent-chips::-webkit-scrollbar {
+  display: none;
+}
+.recent-chips .chip {
+  flex: 0 0 auto;
+  white-space: nowrap;
+}
+
+/* --- settings --- */
+.setting-row {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--space-4);
+  padding: var(--space-4) 0;
+  border-bottom: 1px solid var(--color-border);
+}
+.setting-text {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+.setting-title {
+  font-weight: 600;
+}
+.setting-desc {
+  font-size: var(--text-sm);
+  color: var(--color-text-2);
+  line-height: var(--lh-body);
+}
+.switch {
+  appearance: none;
+  -webkit-appearance: none;
+  width: 48px;
+  height: 28px;
+  border-radius: var(--radius-full);
+  background: var(--color-surface-3);
+  border: 1px solid var(--color-border);
+  position: relative;
+  flex: 0 0 auto;
+  cursor: pointer;
+  min-height: auto;
+  padding: 0;
+  transition: background var(--motion-fast);
+}
+.switch::after {
+  content: "";
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: 22px;
+  height: 22px;
+  border-radius: var(--radius-full);
+  background: var(--color-text-2);
+  transition: transform var(--motion-fast), background var(--motion-fast);
+}
+.switch:checked {
+  background: var(--grad-growth);
+  border-color: transparent;
+}
+.switch:checked::after {
+  transform: translateX(20px);
+  background: #fff;
+}
 .summary-breakdown li {
   padding: var(--space-3) var(--space-1);
 }

@@ -34,6 +34,20 @@ export const archiveCategory = (id: string, token: string) =>
 export const parseLine = (text: string, token: string) =>
   apiPost<ParseResult>("/transactions/parse", { text }, token);
 
+/** Map a parse preview to a savable transaction (used by auto-save). */
+export function parseResultToCreate(r: ParseResult): TransactionCreate {
+  return {
+    amount_minor: r.amount_minor ?? 0,
+    direction: r.direction,
+    category_id: r.category_id,
+    memo: r.memo,
+    occurred_on: r.occurred_on,
+    source: r.source,
+    raw_input: r.raw_input,
+    parse_meta: r.parse_meta ?? undefined,
+  };
+}
+
 // --- Transactions ---
 export const listTransactions = (month: string, token: string) =>
   apiGet<Transaction[]>(`/transactions?month=${month}`, token);

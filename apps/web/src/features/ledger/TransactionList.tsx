@@ -1,30 +1,18 @@
 import { useAutoAnimate } from "@formkit/auto-animate/react";
-import { useToken } from "../../app/AuthProvider";
 import { CategoryIcon } from "../../lib/categoryIcon";
-import { deleteTransaction } from "../../lib/budget";
 import { colorForCategory, formatKRW } from "../../lib/money";
 import type { Category, Transaction } from "../../lib/types";
 
 interface Props {
   transactions: Transaction[];
   categories: Category[];
-  onDeleted: (id: string) => void;
+  onDelete: (tx: Transaction) => void;
 }
 
-export function TransactionList({ transactions, categories, onDeleted }: Props) {
-  const token = useToken();
+export function TransactionList({ transactions, categories, onDelete }: Props) {
   const [listRef] = useAutoAnimate<HTMLUListElement>();
   const catOf = (id: string | null) => categories.find((c) => c.id === id);
   const nameOf = (id: string | null) => catOf(id)?.name ?? "미분류";
-
-  async function remove(id: string) {
-    onDeleted(id); // optimistic
-    try {
-      await deleteTransaction(id, token);
-    } catch {
-      // best-effort: a later reload reconciles if this failed
-    }
-  }
 
   return (
     <ul className="tx-list" ref={listRef}>
@@ -53,7 +41,7 @@ export function TransactionList({ transactions, categories, onDeleted }: Props) 
                 type="button"
                 className="icon-btn"
                 aria-label="삭제"
-                onClick={() => remove(tx.id)}
+                onClick={() => onDelete(tx)}
               >
                 ×
               </button>

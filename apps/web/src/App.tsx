@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { Settings } from "lucide-react";
 import { useAuth } from "./app/AuthProvider";
 import { Spinner } from "./components/states";
 import { LoginScreen } from "./features/auth/LoginScreen";
@@ -6,10 +7,11 @@ import { AnalysisScreen } from "./features/analysis/AnalysisScreen";
 import { BudgetScreen } from "./features/budgets/BudgetScreen";
 import { CategoryScreen } from "./features/categories/CategoryScreen";
 import { HomeScreen } from "./features/ledger/HomeScreen";
+import { SettingsScreen } from "./features/settings/SettingsScreen";
 import { SummaryScreen } from "./features/summary/SummaryScreen";
 import { currentMonth } from "./lib/money";
 
-type View = "home" | "summary" | "analysis" | "budgets" | "categories";
+type View = "home" | "summary" | "analysis" | "budgets" | "categories" | "settings";
 
 export function App() {
   const { session, loading, signOut } = useAuth();
@@ -32,9 +34,19 @@ export function App() {
     <div className="app-shell">
       <header className="top-bar">
         <h1>캐시매니저</h1>
-        <button type="button" className="link" onClick={signOut}>
-          로그아웃
-        </button>
+        <div className="top-actions">
+          <button
+            type="button"
+            className="icon-btn"
+            aria-label="설정"
+            onClick={() => setView("settings")}
+          >
+            <Settings size={20} />
+          </button>
+          <button type="button" className="link" onClick={signOut}>
+            로그아웃
+          </button>
+        </div>
       </header>
 
       <main className="content">
@@ -43,6 +55,7 @@ export function App() {
         {view === "analysis" && <AnalysisScreen month={month} />}
         {view === "budgets" && <BudgetScreen />}
         {view === "categories" && <CategoryScreen />}
+        {view === "settings" && <SettingsScreen />}
       </main>
 
       <nav className="bottom-nav" aria-label="주요 메뉴">
