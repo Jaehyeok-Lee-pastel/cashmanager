@@ -98,3 +98,12 @@ docs        00_overview … 08_coding_guidelines
 - 신규: api `schemas/analysis.py`·`services/{insights,assistant}_service.py`·`routes/{insights,assistant}.py`, `openai_service.complete()`, `timeutils.prev_month()`. web `features/analysis/AnalysisScreen.tsx`, lib 래퍼.
 - pytest 57 passed, build 통과. Codex 설계리뷰 반영(F3 선구현·전월0 처리·인젝션 분리·LLM 폴백).
 - 권장 로드맵 F1→F2/F3 완료. 푸시 알림은 인프라 필요로 후속.
+
+**버전 v1.0 스냅샷** (`main_ver1.0` 브랜치 + `v1.0.0` 태그): 개인 사용·지인 공유용 기본 안정 버전. 이후 main은 기능 추가·실험. 보안 감사(인젝션·비용통제)·최종점검 A−(93)·CSV 백업·비밀번호 재설정·구글 로그인 완비.
+
+**고도화 F4~F6 (forward-looking 예산 3종, 구현 완료 — 마이그레이션 불필요)**
+- 후보 리서치/점수화: `.claude/docs/research/feature-advancement-ranking.md`(14후보 다관점 채점, ML류는 단일사용자 데이터 희소로 보류).
+- **F4 월말 지출 페이스 예측(1위 85)**: `timeutils.month_progress`(경과/총일수), summary에 `projected_*`(경과7일+진행중 달만), insights '이 속도면 초과 예상' warn(예상≥한도×1.05·0.8경고 중복회피), 요약 '월말 예상'·'예상 초과' 배지. Codex 설계리뷰 반영.
+- **F5 달력 뷰(2위 79)**: 내역 탭 리스트↔달력 토글, `CalendarView`(일별 지출 격자, 날짜탭→일자필터 드릴다운). 순수 프론트.
+- **F6 Safe-to-Spend(3위 78)**: summary에 `budget_total/safe_to_spend/daily_allowance`(당월·예산설정 시만), 요약 상단 '오늘 쓸 수 있어요' 카드(초과 시 분기). recurring 차감은 데이터모델 부재로 제외(Codex 권고).
+- 신규 테스트: month_progress 엣지 8 + safe_to_spend 4. pytest 71 통과, build 통과.

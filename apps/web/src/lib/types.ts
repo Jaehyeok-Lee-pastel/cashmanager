@@ -93,4 +93,7 @@ export interface MonthlySummary {
   count: number;
   by_category: CategorySummary[];
   projected_expense: number | null; // projected month-end total (null = N/A)
+  budget_total: number | null; // sum of category budgets (null = none set)
+  safe_to_spend: number | null; // remaining budget this month (may be negative)
+  daily_allowance: number | null; // today's per-day allowance (null = N/A)
 }

@@ -21,3 +21,7 @@ class MonthlySummaryOut(BaseModel):
     by_category: list[CategorySummary]
     # Projected total month-end expense at the current pace (None when N/A).
     projected_expense: int | None = None
+    # Safe-to-spend (current month only; None when no budget set):
+    budget_total: int | None = None  # sum of category budgets
+    safe_to_spend: int | None = None  # budget_total - spent (may be negative)
+    daily_allowance: int | None = None  # safe_to_spend / days left incl. today

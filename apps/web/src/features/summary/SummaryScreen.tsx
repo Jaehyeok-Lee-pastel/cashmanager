@@ -72,6 +72,27 @@ export function SummaryScreen({ month, onMonthChange }: Props) {
 
       {summary && !loading && !error && (
         <>
+          {summary.daily_allowance != null && summary.safe_to_spend != null && (
+            <div className="safe-card">
+              {summary.safe_to_spend >= 0 ? (
+                <>
+                  <div className="safe-label">오늘 쓸 수 있어요</div>
+                  <div className="safe-amount">{formatKRW(summary.daily_allowance)}</div>
+                  <div className="safe-sub">
+                    이번 달 남은 예산 {formatKRW(summary.safe_to_spend)}
+                  </div>
+                </>
+              ) : (
+                <>
+                  <div className="safe-label">이번 달 예산 초과</div>
+                  <div className="safe-amount over">
+                    {formatKRW(Math.abs(summary.safe_to_spend))} 초과
+                  </div>
+                </>
+              )}
+            </div>
+          )}
+
           {grouped.length === 0 ? (
             <EmptyState emoji="📊" title="이 달은 조용하네요" message="아직 지출 기록이 없어요." />
           ) : (

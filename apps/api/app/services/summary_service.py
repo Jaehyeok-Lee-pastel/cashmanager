@@ -1,4 +1,4 @@
-from app.core.timeutils import month_bounds, month_progress
+from app.core.timeutils import month_bounds, month_progress, today_kst
 from app.repositories import budget_repo, category_repo, tx_repo
 from app.schemas.summary import CategorySummary, MonthlySummaryOut
 
@@ -49,6 +49,8 @@ def get_monthly_summary(user_id: str, month: str) -> MonthlySummaryOut:
     ]
     by_category.sort(key=lambda c: c.sum_minor, reverse=True)
 
+    safe, daily = _safe_to_spend(month, total_expense, limits, elapsed, total_days)
+
     return MonthlySummaryOut(
         month=month,
         total_expense=total_expense,
@@ -56,7 +58,31 @@ def get_monthly_summary(user_id: str, month: str) -> MonthlySummaryOut:
         count=len(rows),
         by_category=by_category,
         projected_expense=project(total_expense),
+        budget_total=(sum(limits.values()) or None),
+        safe_to_spend=safe,
+        daily_allowance=daily,
     )
+
+
+def _safe_to_spend(
+    month: str, total_expense: int, limits: dict[str, int], elapsed: int, total_days: int
+) -> tuple[int | None, int | None]:
+    """(remaining budget, today's per-day allowance) for the CURRENT month only.
+
+    daily = (total budget - spent) / days left including today. Returns (None, None)
+    when no budget is set or the month isn't the current one. `remaining` may be
+    negative (already over the total budget) — the UI shows that case differently.
+    """
+    budget_total = sum(limits.values())
+    today = today_kst()
+    year, mon = (int(p) for p in month.split("-", 1))
+    is_current = (today.year, today.month) == (year, mon)
+    if not budget_total or not is_current:
+        return None, None
+    remaining = budget_total - total_expense
+    days_left = total_days - elapsed + 1  # include today
+    daily = round(remaining / days_left) if days_left > 0 else None
+    return remaining, daily
 
 
 def _category_names(user_id: str) -> dict[str, tuple[str, str | None]]:
