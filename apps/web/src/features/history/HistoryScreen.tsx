@@ -5,7 +5,10 @@ import { colorForCategory, formatKRW, shiftMonth } from "../../lib/money";
 import type { Transaction } from "../../lib/types";
 import { useCategories } from "../categories/useCategories";
 import { useTransactions } from "../ledger/useTransactions";
+import { CalendarView } from "./CalendarView";
 import { groupByDate } from "./groupByDate";
+
+type ViewMode = "list" | "calendar";
 
 type DirFilter = "all" | "expense" | "income";
 
@@ -30,6 +33,7 @@ export function HistoryScreen({ month, onMonthChange }: Props) {
   const [dir, setDir] = useState<DirFilter>("all");
   const [catFilter, setCatFilter] = useState<Set<string>>(new Set());
   const [day, setDay] = useState(""); // "" = whole month, else "YYYY-MM-DD"
+  const [view, setView] = useState<ViewMode>("list");
 
   const nameOf = (id: string | null) =>
     categories?.find((c) => c.id === id)?.name ?? "미분류";
@@ -78,6 +82,38 @@ export function HistoryScreen({ month, onMonthChange }: Props) {
         </button>
       </div>
 
+      <div className="segmented view-toggle" role="group" aria-label="보기 방식">
+        {(["list", "calendar"] as const).map((v) => (
+          <button
+            key={v}
+            type="button"
+            className={view === v ? "active" : ""}
+            aria-pressed={view === v}
+            onClick={() => setView(v)}
+          >
+            {v === "list" ? "리스트" : "달력"}
+          </button>
+        ))}
+      </div>
+
+      {view === "calendar" &&
+        (loading ? (
+          <Spinner rows={5} />
+        ) : error ? (
+          <ErrorState message={error} onRetry={reload} />
+        ) : (
+          <CalendarView
+            month={month}
+            transactions={transactions ?? []}
+            onPickDay={(d) => {
+              pickDay(d);
+              setView("list");
+            }}
+          />
+        ))}
+
+      {view === "list" && (
+        <>
       <input
         className="history-search"
         type="search"
@@ -174,6 +210,8 @@ export function HistoryScreen({ month, onMonthChange }: Props) {
             </ul>
           </section>
         ))}
+        </>
+      )}
     </div>
   );
 }

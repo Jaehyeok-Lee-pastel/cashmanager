@@ -1001,6 +1001,63 @@ label {
   color: #fff;
   border-color: transparent;
 }
+.view-toggle {
+  margin-bottom: var(--space-2);
+}
+.calendar {
+  margin-bottom: var(--space-4);
+}
+.calendar-grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 4px;
+}
+.calendar-head {
+  margin-bottom: 4px;
+}
+.cal-weekday {
+  text-align: center;
+  font-size: var(--text-xs);
+  color: var(--color-text-3);
+  padding: 2px 0;
+}
+.cal-cell {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  min-height: 52px;
+  padding: 4px 2px;
+  border: none;
+  border-radius: var(--radius-sm);
+  background: var(--color-surface-2);
+  color: var(--color-text-2);
+  font-family: inherit;
+  cursor: pointer;
+}
+.cal-cell.cal-blank {
+  background: transparent;
+  cursor: default;
+}
+.cal-cell.has-spend {
+  background: color-mix(in srgb, var(--color-accent) 12%, var(--color-surface-2));
+}
+.cal-day-num {
+  font-size: var(--text-xs);
+  color: var(--color-text-3);
+}
+.cal-cell.has-spend .cal-day-num {
+  color: var(--color-text-2);
+}
+.cal-amount {
+  font-size: 10px;
+  font-weight: 600;
+  color: var(--color-text-1);
+  font-variant-numeric: tabular-nums;
+  line-height: 1.1;
+  text-align: center;
+  word-break: keep-all;
+}
 .date-group {
   margin-bottom: var(--space-3);
 }
