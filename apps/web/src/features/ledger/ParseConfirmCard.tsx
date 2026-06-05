@@ -90,6 +90,12 @@ export function ParseConfirmCard({ result, categories, onSaved, onCancel }: Prop
       {result.needs_manual && (
         <p className="muted">AI 분석이 어려워요. 직접 확인해주세요.</p>
       )}
+      {direction === "transfer" && (
+        <p className="transfer-hint">
+          카드대금은 <strong>이체</strong>로 저장돼요 — 개별 카드결제를 따로 기록했다면
+          지출에 중복으로 잡히지 않아요. (안 적어도 지출 총액은 같아요)
+        </p>
+      )}
 
       <div className="field">
         <label htmlFor="cc-amount">금액</label>

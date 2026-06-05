@@ -67,6 +67,13 @@ export function SettingsScreen() {
         </button>
       </div>
       {exportMsg && <p className="status" role="status">{exportMsg}</p>}
+
+      <h3 className="section-label">카드 사용 팁</h3>
+      <p className="muted card-tip">
+        카드로 쓸 때마다 한 줄씩 적으면 지출로 기록돼요. <strong>월 카드대금은 안 적어도 돼요</strong>
+        (이미 개별 결제로 다 잡혔어요). 통장 흐름까지 맞추고 싶어 “카드대금 120만”처럼 적으면
+        <strong>‘이체’</strong>로 저장돼 지출 합계엔 들어가지 않아요.
+      </p>
     </div>
   );
 }
