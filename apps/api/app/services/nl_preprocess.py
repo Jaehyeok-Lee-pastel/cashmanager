@@ -81,9 +81,30 @@ def _parse_units(text: str) -> int | None:
     return None
 
 
+# Phonetic misspellings of money units ("소리나는대로"). Restored ONLY when right
+# after a number, so a merchant like "처넌" (not preceded by a digit) is untouched.
+# Unseen typos fall through to the LLM rather than being mis-corrected here.
+_UNIT_TYPOS = {
+    "처넌": "천원", "처원": "천원", "천언": "천원", "천넌": "천원", "처눤": "천원",
+    "마누언": "만원", "마눤": "만원", "마넌": "만원", "마누원": "만원", "마눠": "만원",
+}
+_DIGIT_CLASS = r"[0-9영일이삼사오육칠팔구]"
+_UNIT_TYPO_RES = [
+    (re.compile(rf"({_DIGIT_CLASS}\s*){re.escape(typo)}"), canon)
+    for typo, canon in _UNIT_TYPOS.items()
+]
+
+
+def restore_amount_units(text: str) -> str:
+    """Fix money-unit typos adjacent to a number: '3처넌' -> '3천원'."""
+    for pattern, canon in _UNIT_TYPO_RES:
+        text = pattern.sub(rf"\g<1>{canon}", text)
+    return text
+
+
 def parse_amount(text: str) -> int | None:
     """Return amount in KRW won, or None if no unambiguous amount is present."""
-    t = text.replace(",", "")
+    t = restore_amount_units(text.replace(",", ""))
     units = _parse_units(t)
     if units is not None:
         return units

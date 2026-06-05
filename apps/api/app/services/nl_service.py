@@ -11,7 +11,7 @@ from datetime import date
 from app.core.timeutils import today_kst
 from app.repositories import category_repo, merchant_map_repo
 from app.schemas.nl import ParseResult
-from app.services import nl_preprocess, openai_service
+from app.services import hangul, nl_preprocess, openai_service
 
 logger = logging.getLogger(__name__)
 
@@ -21,6 +21,17 @@ _FALLBACK_CATEGORY = "기타지출"
 
 
 def parse(user_id: str, text: str) -> ParseResult:
+    """Public entry: repair typos (NFC + broken-jamo) before parsing, but keep
+    the user's ORIGINAL text as raw_input so nothing is silently rewritten."""
+    cleaned = hangul.clean(text)
+    result = _parse(user_id, cleaned)
+    if cleaned != text:
+        meta = {**(result.parse_meta or {}), "corrected_from": text}
+        result = result.model_copy(update={"raw_input": text, "parse_meta": meta})
+    return result
+
+
+def _parse(user_id: str, text: str) -> ParseResult:
     today = today_kst()
     categories = category_repo.list_categories(user_id)
     name_to_id = {_norm(c["name"]): c["id"] for c in categories}

@@ -26,10 +26,20 @@ TODAY = date(2026, 6, 2)  # Tuesday
         ("이만삼천", 23000),
         ("백만원", 1000000),
         ("삼만오천원", 35000),
+        # money-unit typos restored only when adjacent to a number
+        ("3처넌", 3000),
+        ("김밥 3처넌", 3000),
+        ("12마누언", 120000),
+        ("커피 2마눤", 20000),
     ],
 )
 def test_parse_amount(text: str, expected: int):
     assert nl_preprocess.parse_amount(text) == expected
+
+
+def test_unit_typo_not_restored_without_number():
+    # "처넌" as a bare word (no preceding digit) must NOT become an amount
+    assert nl_preprocess.parse_amount("처넌 가게") is None
 
 
 def test_parse_amount_none_when_no_number():

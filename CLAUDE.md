@@ -114,3 +114,10 @@ docs        00_overview … 08_coding_guidelines
 - 마이그레이션 `202606050900_add_transfer_direction.sql`(direction check에 transfer 추가). **Supabase SQL Editor에 적용 필요.**
 - direction Literal+transfer, `nl_preprocess.is_card_payment`(카드대금/카드값/신용카드 결제·자동이체 감지, 개별 카드결제는 제외), `nl_service._transfer_result`(카드대금→transfer fast-path), LLM 스키마/규칙 transfer, `_learn_merchant`는 expense만. web: 이체 옵션·중립 표기. 요약/내역/달력은 expense만 합산이라 자동 제외.
 - pytest 82 통과, build 통과.
+
+**오타 견고성 — 결정론 계층 (구현 완료)**: 근거 `typo-robustness.md`(4관점 리서치). 두 문제 분리.
+- `hangul.py`(무의존 순수파이썬): NFC + 자모 오토마타 복원. "기ㅁ밥"→김밥, "비해ㅇ기"→비행기(떠다니는 호환자모를 앞 음절 종성으로, 보수 가드: 종성 비었음+ㅋㅋ/연속자모 아님). NFC 단독으론 불가(Unicode가 호환자모 합성 안 함).
+- `nl_preprocess.restore_amount_units`: 금액 단위 오타 변이표(처넌→천원, 마누언→만원…) **숫자 인접 시에만** 발동(과교정 0). "3처넌"→3000, "12마누언"→120000.
+- `nl_service.parse`는 wrapper로 `hangul.clean` 적용 후 파싱, **원문은 raw_input 보존** + `parse_meta.corrected_from` 기록. memo=정규화형, raw_input=원문.
+- "뱅기"류 구어축약은 결정론 불가 → LLM/학습맵(이미 처리). 로드맵 4(퍼지매칭)·5(LLM normalized 필드)는 보류.
+- test: hangul 6 + 금액오타 5. pytest 93 통과.
