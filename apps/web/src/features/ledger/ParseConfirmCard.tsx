@@ -155,6 +155,7 @@ export function ParseConfirmCard({ result, categories, onSaved, onCancel }: Prop
           >
             <option value="expense">지출</option>
             <option value="income">수입</option>
+            <option value="transfer">이체</option>
           </select>
         </div>
       </div>

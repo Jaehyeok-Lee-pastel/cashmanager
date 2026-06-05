@@ -131,6 +131,23 @@ def test_is_trivial(text: str, trivial: bool):
 
 
 @pytest.mark.parametrize(
+    "text,expected",
+    [
+        ("카드대금 1200000", True),
+        ("이번달 카드값 80만원", True),
+        ("신용카드 결제 50만", True),
+        ("신용카드 자동이체 45만원", True),
+        ("카드비 30만원", True),
+        ("맥날 5500 카드", False),  # a purchase paid by card -> NOT a bill payment
+        ("스타벅스 카드 4000", False),
+        ("택시 12000", False),
+    ],
+)
+def test_is_card_payment(text: str, expected: bool):
+    assert nl_preprocess.is_card_payment(text) is expected
+
+
+@pytest.mark.parametrize(
     "text,keyword",
     [
         ("맥날 5500", "맥날"),

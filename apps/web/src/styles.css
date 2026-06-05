@@ -572,6 +572,10 @@ label {
 .tx-amount.income {
   color: var(--color-income);
 }
+.tx-amount.transfer {
+  color: var(--color-text-3); /* neutral: a transfer is not spending or income */
+  font-weight: 500;
+}
 
 /* ============================================================
    Categories

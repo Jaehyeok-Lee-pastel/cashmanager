@@ -107,3 +107,10 @@ docs        00_overview … 08_coding_guidelines
 - **F5 달력 뷰(2위 79)**: 내역 탭 리스트↔달력 토글, `CalendarView`(일별 지출 격자, 날짜탭→일자필터 드릴다운). 순수 프론트.
 - **F6 Safe-to-Spend(3위 78)**: summary에 `budget_total/safe_to_spend/daily_allowance`(당월·예산설정 시만), 요약 상단 '오늘 쓸 수 있어요' 카드(초과 시 분기). recurring 차감은 데이터모델 부재로 제외(Codex 권고).
 - 신규 테스트: month_progress 엣지 8 + safe_to_spend 4. pytest 71 통과, build 통과.
+
+**콜드스타트 예산 초안 (구현 완료)**: 신규 사용자(3개월 데이터 없음)용. `GET /budgets/template?income_minor=` → 소비예산(소득×0.70) 통계청 비율 배분, 카드대금 0%. BudgetScreen '소득으로 초안 만들기'. 근거 `cold-start-budget.md`.
+
+**신용카드 처리 = 이체(transfer) 방향 (구현 완료, 마이그레이션 적용 필요)**: 카드대금 이중계산 방지. 결제시점=expense, 월 카드대금=transfer(지출/예산/인사이트 제외). 근거 `credit-card-handling.md`(YNAB·Monarch·뱅크샐러드 등).
+- 마이그레이션 `202606050900_add_transfer_direction.sql`(direction check에 transfer 추가). **Supabase SQL Editor에 적용 필요.**
+- direction Literal+transfer, `nl_preprocess.is_card_payment`(카드대금/카드값/신용카드 결제·자동이체 감지, 개별 카드결제는 제외), `nl_service._transfer_result`(카드대금→transfer fast-path), LLM 스키마/규칙 transfer, `_learn_merchant`는 expense만. web: 이체 옵션·중립 표기. 요약/내역/달력은 expense만 합산이라 자동 제외.
+- pytest 82 통과, build 통과.

@@ -30,6 +30,11 @@ def parse(user_id: str, text: str) -> ParseResult:
     occurred_on, remainder = nl_preprocess.parse_date(text, today)
     amount = nl_preprocess.parse_amount(remainder)
 
+    # 0) credit-card bill payment -> transfer (not spending). Recording it as an
+    #    expense would double-count the individual card purchases already logged.
+    if amount is not None and nl_preprocess.is_card_payment(text):
+        return _transfer_result(text, amount, occurred_on or today, name_to_id)
+
     # 1) learned merchant map — instant, free, deterministic (improves with use)
     keyword = nl_preprocess.merchant_keyword(text)
     if keyword and amount is not None:
@@ -100,6 +105,30 @@ def _map_result(
         source="nl_text",
         raw_input=text,
         parse_meta=_meta("merchant_map", 0.95, category_name),
+    )
+
+
+_CARD_BILL_CATEGORY = "카드대금"
+
+
+def _transfer_result(
+    text: str, amount: int, occurred_on: date, name_to_id: dict[str, str]
+) -> ParseResult:
+    """A credit-card bill payment: a transfer, excluded from spending totals."""
+    cid = name_to_id.get(_norm(_CARD_BILL_CATEGORY))
+    return ParseResult(
+        amount_minor=amount,
+        direction="transfer",
+        category_id=cid,
+        category_name=_CARD_BILL_CATEGORY if cid else None,
+        memo=text.strip(),
+        occurred_on=occurred_on,
+        confidence=0.9,
+        ambiguous_fields=[],
+        needs_manual=False,
+        source="nl_text",
+        raw_input=text,
+        parse_meta=_meta("card_payment", 0.9, _CARD_BILL_CATEGORY if cid else None),
     )
 
 

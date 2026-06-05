@@ -3,7 +3,7 @@ from typing import Literal
 
 from pydantic import BaseModel, Field
 
-Direction = Literal["expense", "income"]
+Direction = Literal["expense", "income", "transfer"]
 TxSource = Literal["nl_text", "manual", "receipt", "voice", "import"]
 
 

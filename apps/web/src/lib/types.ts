@@ -1,4 +1,4 @@
-export type Direction = "expense" | "income";
+export type Direction = "expense" | "income" | "transfer";
 export type TxSource = "nl_text" | "manual" | "receipt" | "voice" | "import";
 export type AmbiguousField = "amount" | "category" | "memo" | "date";
 

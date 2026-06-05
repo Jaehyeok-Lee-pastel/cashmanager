@@ -228,10 +228,10 @@ function HistoryRow({ tx, name }: { tx: Transaction; name: string }) {
       </span>
       <div className="tx-main">
         <span className="tx-memo">{tx.memo || name}</span>
-        <span className="tx-sub">{name}</span>
+        <span className="tx-sub">{tx.direction === "transfer" ? "이체 · " : ""}{name}</span>
       </div>
       <span className={`tx-amount ${tx.direction}`}>
-        {tx.direction === "income" ? "+" : "-"}
+        {tx.direction === "income" ? "+" : tx.direction === "expense" ? "-" : ""}
         {formatKRW(tx.amount_minor)}
       </span>
     </li>

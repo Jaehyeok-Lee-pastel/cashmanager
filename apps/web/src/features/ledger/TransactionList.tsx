@@ -29,12 +29,13 @@ export function TransactionList({ transactions, categories, onDelete }: Props) {
             <div className="tx-main">
               <span className="tx-memo">{tx.memo || nameOf(tx.category_id)}</span>
               <span className="tx-sub">
+                {tx.direction === "transfer" ? "이체 · " : ""}
                 {nameOf(tx.category_id)} · {tx.occurred_on.slice(5)}
               </span>
             </div>
             <div className="tx-side">
               <span className={`tx-amount ${tx.direction}`}>
-                {tx.direction === "income" ? "+" : "-"}
+                {tx.direction === "income" ? "+" : tx.direction === "expense" ? "-" : ""}
                 {formatKRW(tx.amount_minor)}
               </span>
               <button

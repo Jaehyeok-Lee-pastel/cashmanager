@@ -50,6 +50,8 @@ def create_transaction(user_id: str, payload: TransactionCreate) -> TransactionO
 
 def _learn_merchant(user_id: str, payload: TransactionCreate) -> None:
     """Remember merchant -> category so future inputs classify without the LLM."""
+    if payload.direction != "expense":
+        return  # transfers/income carry no merchant->category signal
     if not payload.category_id or not payload.raw_input:
         return
     keyword = nl_preprocess.merchant_keyword(payload.raw_input)

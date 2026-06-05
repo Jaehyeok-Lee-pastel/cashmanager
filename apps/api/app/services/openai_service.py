@@ -29,6 +29,9 @@ _SYSTEM = (
     "어느 카테고리에도 안 맞는 지출은 '기타지출'(direction=expense)로 한다.\n"
     "- amount는 KRW 정수(원). 이미 결정된 값이 주어지면 그대로 쓴다.\n"
     "- '월급/급여/입금/정산/환급/용돈' 등 수입성 표현이면 direction='income'.\n"
+    "- '카드대금/카드값/신용카드 결제·자동이체'처럼 카드 청구액을 갚는 것이면 "
+    "direction='transfer'(소비가 아니라 이체). 개별 카드 결제(예: '맥날 5500 카드')는 "
+    "그냥 expense다.\n"
     "- memo에는 상호/품목 등 원문 핵심을 남긴다.\n"
     "예시(브랜드→카테고리 추론):\n"
     "  '스벅 아메리카노 4900' -> 4900, 카페/간식, expense\n"
@@ -78,7 +81,7 @@ def _schema(categories: list[str]) -> dict:
                 "additionalProperties": False,
                 "properties": {
                     "amount": {"type": "integer"},
-                    "direction": {"type": "string", "enum": ["expense", "income"]},
+                    "direction": {"type": "string", "enum": ["expense", "income", "transfer"]},
                     "category": {"type": "string", "enum": categories or ["기타지출"]},
                     "memo": {"type": "string"},
                     "occurred_on": {

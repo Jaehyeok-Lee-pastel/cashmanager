@@ -175,6 +175,19 @@ def _safe_date(year: int, month: int, day: int) -> date | None:
         return None
 
 
+# Credit-card BILL payment (a transfer, not new spending). Matches 카드대금/
+# 카드값/카드비/카드 청구, 신용카드 결제·대금·자동이체 — but NOT a normal card
+# purchase like "맥날 5500 카드" (that's an expense that happens to be paid by card).
+_CARD_PAYMENT_RE = re.compile(
+    r"카드\s*(대금|값|비|청구|결제대금)|신용카드\s*(결제|대금|자동이체)"
+)
+
+
+def is_card_payment(text: str) -> bool:
+    """True when the line is paying off a credit-card bill (-> transfer)."""
+    return bool(_CARD_PAYMENT_RE.search(text))
+
+
 def is_trivial(text: str) -> bool:
     """True only for a PURE number (e.g. "5000", "5,000원").
 
