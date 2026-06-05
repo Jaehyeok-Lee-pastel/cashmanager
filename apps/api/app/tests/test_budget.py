@@ -70,7 +70,8 @@ def test_template_budgets_allocates_by_ratio(monkeypatch):
         "app.repositories.category_repo.list_categories",
         lambda uid: [
             {"id": "c-food", "name": "식비"},
-            {"id": "c-card", "name": "카드대금"},  # ratio 0 -> excluded
+            {"id": "c-rent", "name": "주거"},  # fixed cost -> left blank
+            {"id": "c-card", "name": "카드대금"},  # transfer -> excluded
             {"id": "c-custom", "name": "내맘대로"},  # not in template -> excluded
         ],
     )
@@ -79,7 +80,8 @@ def test_template_budgets_allocates_by_ratio(monkeypatch):
     food = next(s for s in out if s.category_id == "c-food")
     assert food.suggested_minor == 504000
     ids = {s.category_id for s in out}
-    assert "c-card" not in ids and "c-custom" not in ids
+    # 주거(fixed)·카드대금(transfer)·custom are NOT templated
+    assert ids == {"c-food"}
 
 
 def test_suggest_ignores_income_and_uncategorized(monkeypatch):

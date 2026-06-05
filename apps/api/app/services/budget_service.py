@@ -9,16 +9,16 @@ _SUGGEST_MONTHS = 3
 # Cold-start template (no history yet): allocate income by 통계청 가계동향 ratios.
 # consumable budget = take-home income x average propensity to consume (~0.70).
 _CONSUME_RATIO = 0.70
-# Ratios of the consumable budget, keyed by default category NAME (sum = 1.0).
-# 카드대금 is intentionally 0 (it's a payment date, not new spending — would
-# double-count the original 식비/교통/... transactions).
+# Ratios of the consumable budget, keyed by default category NAME — VARIABLE
+# (discretionary) categories only. Fixed costs (주거/통신) and 카드대금 are left
+# OUT on purpose: their amount varies wildly per person (월세 vs 전세/자가) and the
+# user knows their exact number, so guessing them with an average ratio is worse
+# than leaving them blank to fill in. (See research/cold-start-budget.md.)
 _TEMPLATE_RATIOS = {
     "식비": 0.24,
     "카페/간식": 0.06,
     "생활/마트": 0.05,
     "교통": 0.12,
-    "주거": 0.18,
-    "통신": 0.04,
     "문화/여가": 0.08,
     "건강/의료": 0.08,
     "쇼핑": 0.10,

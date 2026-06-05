@@ -108,7 +108,8 @@ export function BudgetScreen() {
       <details className="budget-onboarding">
         <summary>처음이신가요? 소득으로 예산 초안 만들기</summary>
         <p className="onboard-note">
-          통계청 평균 비율로 임시 초안을 만들어요. 카드대금은 제외돼요. 언제든 수정·저장하세요.
+          조절 가능한 지출만 먼저 채워드려요. 주거비·통신비·카드대금은 사람마다 달라서
+          실제 금액을 직접 넣어주세요. 언제든 수정·저장할 수 있어요.
         </p>
         <div className="onboard-row">
           <input
