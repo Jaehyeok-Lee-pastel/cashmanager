@@ -1,7 +1,12 @@
 import { useEffect, useState } from "react";
 import { useToken } from "../../app/AuthProvider";
 import { ErrorState, Spinner } from "../../components/states";
-import { deleteBudget, getBudgetSuggestions, upsertBudgets } from "../../lib/budget";
+import {
+  deleteBudget,
+  getBudgetSuggestions,
+  getBudgetTemplate,
+  upsertBudgets,
+} from "../../lib/budget";
 import { CategoryIcon } from "../../lib/categoryIcon";
 import { colorForCategory } from "../../lib/money";
 import type { Budget } from "../../lib/types";
@@ -17,6 +22,7 @@ export function BudgetScreen() {
   const [limits, setLimits] = useState<Record<string, string>>({});
   const [busy, setBusy] = useState(false);
   const [notice, setNotice] = useState<string | null>(null);
+  const [income, setIncome] = useState("");
 
   useEffect(() => {
     if (budgets) {
@@ -36,6 +42,31 @@ export function BudgetScreen() {
       setNotice("최근 3개월 평균으로 채웠어요. 확인 후 저장하세요.");
     } catch {
       setNotice("자동 제안을 불러오지 못했어요.");
+    }
+  }
+
+  // cold start (no 3-month history yet): draft a budget from monthly income.
+  async function applyTemplate() {
+    const won = Number(income.replace(/[,\s]/g, ""));
+    if (!won || won <= 0) {
+      setNotice("월 실수령액을 입력해주세요.");
+      return;
+    }
+    setNotice(null);
+    try {
+      const suggestions = await getBudgetTemplate(won, token);
+      if (suggestions.length === 0) {
+        setNotice("초안을 만들 카테고리가 없어요.");
+        return;
+      }
+      setLimits((prev) => {
+        const next = { ...prev };
+        for (const s of suggestions) next[s.category_id] = String(s.suggested_minor);
+        return next;
+      });
+      setNotice("소득 기준 임시 초안을 만들었어요. 확인 후 저장하세요.");
+    } catch {
+      setNotice("초안을 만들지 못했어요.");
     }
   }
 
@@ -73,6 +104,28 @@ export function BudgetScreen() {
       <button type="button" className="ghost" onClick={applySuggestions} disabled={busy}>
         최근 3개월 평균으로 자동 채우기
       </button>
+
+      <details className="budget-onboarding">
+        <summary>처음이신가요? 소득으로 예산 초안 만들기</summary>
+        <p className="onboard-note">
+          통계청 평균 비율로 임시 초안을 만들어요. 카드대금은 제외돼요. 언제든 수정·저장하세요.
+        </p>
+        <div className="onboard-row">
+          <input
+            type="text"
+            inputMode="numeric"
+            className="budget-input"
+            aria-label="월 실수령액"
+            placeholder="월 실수령액 (원)"
+            value={income}
+            onChange={(e) => setIncome(e.target.value)}
+          />
+          <button type="button" className="ghost" onClick={applyTemplate} disabled={busy}>
+            초안 만들기
+          </button>
+        </div>
+      </details>
+
       {notice && <p className="status" role="status">{notice}</p>}
 
       <ul className="budget-list">

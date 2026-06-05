@@ -65,6 +65,23 @@ def test_suggest_averages_last_3_months(monkeypatch):
     assert out[0].category_id == "c-food"
 
 
+def test_template_budgets_allocates_by_ratio(monkeypatch):
+    monkeypatch.setattr(
+        "app.repositories.category_repo.list_categories",
+        lambda uid: [
+            {"id": "c-food", "name": "식비"},
+            {"id": "c-card", "name": "카드대금"},  # ratio 0 -> excluded
+            {"id": "c-custom", "name": "내맘대로"},  # not in template -> excluded
+        ],
+    )
+    out = budget_service.template_budgets("u", 3_000_000)
+    # consumable = 3,000,000 * 0.70 = 2,100,000; 식비 24% = 504,000
+    food = next(s for s in out if s.category_id == "c-food")
+    assert food.suggested_minor == 504000
+    ids = {s.category_id for s in out}
+    assert "c-card" not in ids and "c-custom" not in ids
+
+
 def test_suggest_ignores_income_and_uncategorized(monkeypatch):
     monkeypatch.setattr(
         "app.repositories.category_repo.list_categories",

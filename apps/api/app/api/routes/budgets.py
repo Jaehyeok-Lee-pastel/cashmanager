@@ -1,8 +1,10 @@
-from fastapi import APIRouter, status
+from fastapi import APIRouter, Query, status
 
 from app.api.deps import CurrentUserDep
 from app.schemas.budget import BudgetOut, BudgetSuggestion, BudgetUpsert
 from app.services import budget_service
+
+_MAX_INCOME = 1_000_000_000  # ₩1B/month sanity bound on the income input
 
 router = APIRouter(prefix="/budgets", tags=["budgets"])
 
@@ -23,6 +25,15 @@ def upsert_budgets(payload: BudgetUpsert, user: CurrentUserDep) -> list[BudgetOu
 @router.get("/suggestions", response_model=list[BudgetSuggestion])
 def suggest_budgets(user: CurrentUserDep) -> list[BudgetSuggestion]:
     return budget_service.suggest_budgets(user.user_id)
+
+
+@router.get("/template", response_model=list[BudgetSuggestion])
+def template_budgets(
+    user: CurrentUserDep,
+    income_minor: int = Query(gt=0, le=_MAX_INCOME),
+) -> list[BudgetSuggestion]:
+    """Cold-start draft from monthly income (for new users with no history)."""
+    return budget_service.template_budgets(user.user_id, income_minor)
 
 
 @router.delete("/{category_id}", status_code=status.HTTP_204_NO_CONTENT)

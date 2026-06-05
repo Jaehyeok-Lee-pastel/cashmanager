@@ -6,6 +6,26 @@ from app.schemas.budget import BudgetItem, BudgetOut, BudgetSuggestion
 
 _SUGGEST_MONTHS = 3
 
+# Cold-start template (no history yet): allocate income by 통계청 가계동향 ratios.
+# consumable budget = take-home income x average propensity to consume (~0.70).
+_CONSUME_RATIO = 0.70
+# Ratios of the consumable budget, keyed by default category NAME (sum = 1.0).
+# 카드대금 is intentionally 0 (it's a payment date, not new spending — would
+# double-count the original 식비/교통/... transactions).
+_TEMPLATE_RATIOS = {
+    "식비": 0.24,
+    "카페/간식": 0.06,
+    "생활/마트": 0.05,
+    "교통": 0.12,
+    "주거": 0.18,
+    "통신": 0.04,
+    "문화/여가": 0.08,
+    "건강/의료": 0.08,
+    "쇼핑": 0.10,
+    "기타지출": 0.05,
+}
+_ROUND_TO = 1000  # round drafts to a tidy ₩1,000
+
 
 def list_budgets(user_id: str) -> list[BudgetOut]:
     return [BudgetOut(**row) for row in budget_repo.list_budgets(user_id)]
@@ -57,6 +77,29 @@ def suggest_budgets(user_id: str) -> list[BudgetSuggestion]:
         for cid, total in totals.items()
         if cid in names  # only current (non-archived) categories
     ]
+    suggestions.sort(key=lambda s: s.suggested_minor, reverse=True)
+    return suggestions
+
+
+def template_budgets(user_id: str, income_minor: int) -> list[BudgetSuggestion]:
+    """Cold-start draft: split (income x consume ratio) across categories by template.
+
+    For brand-new users with no history (suggest_budgets returns nothing). Maps by
+    category NAME, so only the default categories get a draft; custom categories and
+    카드대금 (ratio 0) are skipped.
+    """
+    consumable = income_minor * _CONSUME_RATIO
+    suggestions = []
+    for c in category_repo.list_categories(user_id):
+        ratio = _TEMPLATE_RATIOS.get(c["name"])
+        if not ratio:
+            continue
+        amount = round(consumable * ratio / _ROUND_TO) * _ROUND_TO
+        if amount <= 0:
+            continue
+        suggestions.append(
+            BudgetSuggestion(category_id=c["id"], name=c["name"], suggested_minor=amount)
+        )
     suggestions.sort(key=lambda s: s.suggested_minor, reverse=True)
     return suggestions
 
