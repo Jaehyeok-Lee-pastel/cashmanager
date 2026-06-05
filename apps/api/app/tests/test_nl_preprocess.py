@@ -172,6 +172,12 @@ def test_is_card_payment(text: str, expected: bool):
         ("스벅 아메리카노 4900", "스벅"),
         ("지난주 금요일 회식 50000", "회식"),
         ("5000", None),
+        # generic store types are skipped so the learning map keys off real signal
+        ("편의점 김밥 3500", "김밥"),
+        ("편의점 5000", None),
+        ("마트 만이천원", None),
+        ("이마트 32000", "이마트"),  # a brand is specific -> kept
+        ("편의점", None),
     ],
 )
 def test_merchant_keyword(text: str, keyword: str | None):

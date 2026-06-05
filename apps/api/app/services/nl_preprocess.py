@@ -228,18 +228,29 @@ def is_trivial(text: str) -> bool:
 _DATE_WORDS = {"오늘", "어제", "그제", "그저께", "엊그제", "내일",
                "지난주", "저번주", "이번주"}
 
+# Generic store TYPES (not brands) that sell across many categories. Learning
+# "편의점 -> 식비" from "편의점 김밥" then mis-classifying "편의점 5000" is wrong, so
+# we skip these and key off the next meaningful token ("김밥") instead. Brands like
+# "이마트"/"올리브영" are specific and stay.
+_GENERIC_MERCHANTS = {"편의점", "마트", "슈퍼", "슈퍼마켓", "백화점", "시장",
+                      "가게", "상점", "몰", "쇼핑몰", "온라인", "스토어"}
+
 
 def merchant_keyword(text: str) -> str | None:
-    """Extract a normalized merchant keyword (first non-amount, non-date token).
+    """Extract a normalized merchant keyword (first meaningful token).
 
-    Used by the learning map: "맥날 5500" -> "맥날", "어제 택시 12000" -> "택시".
+    Skips amounts, dates, and generic store types so the learning map keys off a
+    real signal: "맥날 5500" -> "맥날", "편의점 김밥 3500" -> "김밥",
+    "편의점 5000" -> None (let the LLM decide; don't reuse a stale generic guess).
     """
     for token in text.split():
         low = token.strip().lower()
-        if not low or low in _DATE_WORDS:
+        if not low or low in _DATE_WORDS or low in _GENERIC_MERCHANTS:
             continue
         if any(ch.isdigit() for ch in low):
             continue
+        if parse_amount(low) is not None:
+            continue  # a Korean-numeral amount ("만이천원"), not a merchant
         if low.endswith("요일"):
             continue
         return low
