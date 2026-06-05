@@ -155,15 +155,21 @@ def parse_date(text: str, today: date) -> tuple[date | None, str]:
     return None, text
 
 
-def _md_in_past(month: int, day: int, today: date) -> date | None:
-    """Resolve a bare month/day to the most recent PAST occurrence.
+# A bare M/D within this window ahead of today stays in the current year (a
+# planned/near entry); only a FAR-future this-year date is read as last year
+# (e.g. "12/31" typed in January = last December, not 11 months ahead).
+_FUTURE_GRACE_DAYS = 183
 
-    A ledger records what already happened, so "12/31" typed in January means
-    last year, not eleven months in the future. If this year's date is still
-    ahead of today, fall back to last year.
+
+def _md_in_past(month: int, day: int, today: date) -> date | None:
+    """Resolve a bare month/day to its most likely year.
+
+    Near future (<= ~6 months ahead) keeps this year; far future rolls back to
+    last year, since a ledger entry that far ahead is almost certainly the date
+    that just passed.
     """
     resolved = _safe_date(today.year, month, day)
-    if resolved and resolved > today:
+    if resolved and (resolved - today).days > _FUTURE_GRACE_DAYS:
         return _safe_date(today.year - 1, month, day)
     return resolved
 
