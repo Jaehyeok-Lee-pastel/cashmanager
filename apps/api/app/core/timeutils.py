@@ -1,3 +1,4 @@
+import calendar
 from datetime import date, datetime, timedelta, timezone
 
 KST = timezone(timedelta(hours=9))
@@ -18,6 +19,26 @@ def prev_month(month: str, back: int = 1) -> str:
     year, mon = (int(p) for p in month.split("-", 1))
     idx = (year * 12 + (mon - 1)) - back
     return f"{idx // 12:04d}-{idx % 12 + 1:02d}"
+
+
+def month_progress(month: str, today: date | None = None) -> tuple[int, int]:
+    """(elapsed_days, total_days) for a "YYYY-MM" month relative to today (KST).
+
+    Past month  -> (total, total) (complete).
+    Future month -> (0, total).
+    Current month -> (today's day-of-month, total).
+    Month is parsed (not string-compared) so the calendar comparison is exact.
+    """
+    today = today or today_kst()
+    year, mon = (int(part) for part in month.split("-", 1))
+    total_days = calendar.monthrange(year, mon)[1]
+    target = (year, mon)
+    current = (today.year, today.month)
+    if target < current:
+        return total_days, total_days
+    if target > current:
+        return 0, total_days
+    return today.day, total_days
 
 
 def month_bounds(month: str) -> tuple[str, str]:

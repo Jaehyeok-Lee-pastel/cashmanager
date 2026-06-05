@@ -1,8 +1,12 @@
-from app.core.timeutils import month_bounds
+from app.core.timeutils import month_bounds, month_progress
 from app.repositories import budget_repo, category_repo, tx_repo
 from app.schemas.summary import CategorySummary, MonthlySummaryOut
 
 _UNCATEGORIZED = "미분류"
+
+# Don't project before this many days have elapsed: early in the month a few
+# entries extrapolate into wild numbers (linear pace is noisiest at the start).
+_MIN_ELAPSED_DAYS = 7
 
 
 def get_monthly_summary(user_id: str, month: str) -> MonthlySummaryOut:
@@ -20,6 +24,15 @@ def get_monthly_summary(user_id: str, month: str) -> MonthlySummaryOut:
         cid = r.get("category_id")
         per_category[cid] = per_category.get(cid, 0) + r["amount_minor"]
 
+    # Month-end pace projection (only for an in-progress month past the noise window).
+    elapsed, total_days = month_progress(month)
+    in_progress = _MIN_ELAPSED_DAYS <= elapsed < total_days
+
+    def project(amount: int) -> int | None:
+        # Linear extrapolation: a one-off large purchase can inflate this, so the
+        # UI wording stays estimative ("이 속도면").
+        return round(amount * total_days / elapsed) if in_progress else None
+
     names = _category_names(user_id)
     limits = _category_limits(user_id)
     by_category = [
@@ -30,6 +43,7 @@ def get_monthly_summary(user_id: str, month: str) -> MonthlySummaryOut:
             sum_minor=amount,
             ratio=(amount / total_expense) if total_expense else 0.0,
             limit_minor=limits.get(cid),
+            projected_minor=project(amount),
         )
         for cid, amount in per_category.items()
     ]
@@ -41,6 +55,7 @@ def get_monthly_summary(user_id: str, month: str) -> MonthlySummaryOut:
         total_income=total_income,
         count=len(rows),
         by_category=by_category,
+        projected_expense=project(total_expense),
     )
 
 

@@ -30,6 +30,7 @@ function groupCategories(items: CategorySummary[]): CategorySummary[] {
       sum_minor: restSum,
       ratio: restRatio,
       limit_minor: null,
+      projected_minor: null,
     },
   ];
 }
@@ -82,6 +83,11 @@ export function SummaryScreen({ month, onMonthChange }: Props) {
                   <div className="amount">{formatKRW(summary.total_expense)}</div>
                 </div>
               </div>
+              {summary.projected_expense != null && (
+                <div className="pace-line">
+                  이 속도면 월말 예상 <strong>{formatKRW(summary.projected_expense)}</strong>
+                </div>
+              )}
             </>
           )}
 
@@ -106,6 +112,12 @@ export function SummaryScreen({ month, onMonthChange }: Props) {
                 const hasBudget = c.limit_minor != null && c.limit_minor > 0;
                 const budgetPct = hasBudget ? c.sum_minor / c.limit_minor! : null;
                 const over = budgetPct != null && budgetPct >= 1;
+                // on track to exceed but not over yet -> estimative badge
+                const paceOver =
+                  hasBudget &&
+                  !over &&
+                  c.projected_minor != null &&
+                  c.projected_minor > c.limit_minor!;
                 const barColor =
                   budgetPct == null
                     ? color
@@ -130,6 +142,7 @@ export function SummaryScreen({ month, onMonthChange }: Props) {
                         </span>
                         {c.name}
                         {over && <span className="over-badge">초과</span>}
+                        {paceOver && <span className="pace-badge">예상 초과</span>}
                       </span>
                       <span className="bd-value">
                         {hasBudget

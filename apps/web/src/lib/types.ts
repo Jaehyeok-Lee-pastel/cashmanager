@@ -59,6 +59,7 @@ export interface CategorySummary {
   sum_minor: number;
   ratio: number;
   limit_minor: number | null;
+  projected_minor: number | null; // month-end pace projection (null = N/A)
 }
 
 export interface Budget {
@@ -91,4 +92,5 @@ export interface MonthlySummary {
   total_income: number;
   count: number;
   by_category: CategorySummary[];
+  projected_expense: number | null; // projected month-end total (null = N/A)
 }

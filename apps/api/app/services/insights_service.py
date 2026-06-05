@@ -9,6 +9,9 @@ from app.services import summary_service
 logger = logging.getLogger(__name__)
 
 _WARN_RATIO = 0.8
+# Only warn about a projected overage when it's meaningful (>=5% over), so
+# rounding noise near the limit doesn't trigger a scary card.
+_PACE_OVERAGE = 1.05
 
 # cost guard: cache the LLM coach so repeated loads of the same month/data
 # don't re-bill OpenAI. key -> (expires_monotonic, card)
@@ -41,6 +44,20 @@ def get_insights(user_id: str, month: str) -> list[InsightCard]:
                 type="budget", severity="warn",
                 title=f"{c.name} 예산 임박",
                 detail=f"{_won(c.sum_minor)} / {_won(c.limit_minor)} ({round(ratio * 100)}%)",
+            ))
+
+    # 1b) pace warning: on track to exceed a budget that isn't warned yet.
+    # Skips categories already >=80% (covered above) or already over.
+    for c in summary.by_category:
+        if not c.limit_minor or c.projected_minor is None:
+            continue
+        if c.sum_minor >= c.limit_minor * _WARN_RATIO:
+            continue  # already alerted/warned by the loop above
+        if c.projected_minor >= c.limit_minor * _PACE_OVERAGE:
+            cards.append(InsightCard(
+                type="budget", severity="warn",
+                title=f"{c.name} 이 속도면 초과 예상",
+                detail=f"이 속도면 월말 {_won(c.projected_minor)} (한도 {_won(c.limit_minor)})",
             ))
 
     # 2) month-over-month trend
