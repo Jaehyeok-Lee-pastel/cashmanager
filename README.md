@@ -12,8 +12,12 @@ AI가 자연어 한 줄을 금액·카테고리·날짜로 파싱해 저장하�
 -->
 
 - **스택**: React 19 + Vite + TypeScript / FastAPI / Supabase(Postgres) / OpenAI
-- **상태**: 작동하는 MVP (개인 dogfooding 가능). 분류 정확도 QA 176케이스 **100%**, 백엔드 pytest 57 통과.
+- **상태**: 작동하는 MVP (개인 dogfooding 가능). 분류 정확도 QA 176케이스 **100%**, 백엔드 pytest 59 통과.
 - **개발 방식**: Claude Code 오케스트레이션 + Codex/Gemini 위임 + Workflow 다중에이전트 설계/리뷰 (상세 [`CLAUDE.md`](CLAUDE.md))
+
+### 버전 & 브랜치
+- **`v1.0.0` / `main_ver1.0`** — **기본 버전(개인 사용 · 지인 공유용)**. 본인이 직접 쓰고 지인에게 공유하려고 간단하게 만든 안정 스냅샷. 자연어 입력·예산·요약·AI 분석·인증 3종·CSV 백업까지 갖춘 완결 버전.
+- **`main`** — 이후 **기능 추가 및 실험적 작업**을 진행하는 개발 브랜치.
 
 ---
 
