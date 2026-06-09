@@ -11,7 +11,7 @@ from datetime import date
 from app.core.timeutils import today_kst
 from app.repositories import category_repo, merchant_map_repo
 from app.schemas.nl import ParseResult
-from app.services import hangul, nl_preprocess, openai_service
+from app.services import hangul, merchant_norm, nl_preprocess, openai_service
 
 logger = logging.getLogger(__name__)
 
@@ -25,10 +25,16 @@ def parse(user_id: str, text: str) -> ParseResult:
     the user's ORIGINAL text as raw_input so nothing is silently rewritten."""
     cleaned = hangul.clean(text)
     result = _parse(user_id, cleaned)
+    updates: dict = {}
+    # standardize the memo (expand brand aliases, drop filler/amount tokens);
+    # keep the original if normalization would empty it.
+    norm_memo = merchant_norm.normalize_memo(result.memo or "")
+    if norm_memo and norm_memo != result.memo:
+        updates["memo"] = norm_memo
     if cleaned != text:
-        meta = {**(result.parse_meta or {}), "corrected_from": text}
-        result = result.model_copy(update={"raw_input": text, "parse_meta": meta})
-    return result
+        updates["raw_input"] = text
+        updates["parse_meta"] = {**(result.parse_meta or {}), "corrected_from": text}
+    return result.model_copy(update=updates) if updates else result
 
 
 def _parse(user_id: str, text: str) -> ParseResult:

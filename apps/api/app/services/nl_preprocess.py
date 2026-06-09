@@ -12,6 +12,8 @@ LLM downstream).
 import re
 from datetime import date, timedelta
 
+from app.services import merchant_norm
+
 _SINO_DIGIT = {
     "영": 0, "일": 1, "이": 2, "삼": 3, "사": 4,
     "오": 5, "육": 6, "칠": 7, "팔": 8, "구": 9,
@@ -253,5 +255,6 @@ def merchant_keyword(text: str) -> str | None:
             continue  # a Korean-numeral amount ("만이천원"), not a merchant
         if low.endswith("요일"):
             continue
-        return low
+        # canonicalize so "스벅"/"스타벅스" converge to one learning-map key
+        return merchant_norm.normalize_merchant(low)
     return None

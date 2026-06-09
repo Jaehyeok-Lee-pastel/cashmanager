@@ -121,3 +121,5 @@ docs        00_overview … 08_coding_guidelines
 - `nl_service.parse`는 wrapper로 `hangul.clean` 적용 후 파싱, **원문은 raw_input 보존** + `parse_meta.corrected_from` 기록. memo=정규화형, raw_input=원문.
 - "뱅기"류 구어축약은 결정론 불가 → LLM/학습맵(이미 처리). 로드맵 4(퍼지매칭)·5(LLM normalized 필드)는 보류.
 - test: hangul 6 + 금액오타 5. pytest 93 통과.
+
+**기록 표준화 (구현 완료)**: `merchant_norm.py` — 브랜드 별칭맵(맥날→맥도날드, 스벅→스타벅스 ~35) + filler/금액/날짜 토큰 제거. `merchant_keyword`가 표준명 반환 → merchant_map 키 수렴(스벅/스타벅스 한 키, 학습적중↑·LLM↓). `nl_service.parse` 래퍼가 메모 표준화("맥날 10000원 썼습니다"→memo "맥도날드"), raw_input 원문 보존. 과잉정규화 경계(고신뢰 별칭만, 모르는 상호 불변). test: merchant_norm 3묶음. pytest 115 통과, 324 QA·build 통과. v2(LLM normalized 개방형)는 보류.

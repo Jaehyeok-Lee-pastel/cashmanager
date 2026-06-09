@@ -167,9 +167,9 @@ def test_is_card_payment(text: str, expected: bool):
 @pytest.mark.parametrize(
     "text,keyword",
     [
-        ("맥날 5500", "맥날"),
+        ("맥날 5500", "맥도날드"),  # alias canonicalized for map-key convergence
         ("어제 택시 12000", "택시"),
-        ("스벅 아메리카노 4900", "스벅"),
+        ("스벅 아메리카노 4900", "스타벅스"),
         ("지난주 금요일 회식 50000", "회식"),
         ("5000", None),
         # generic store types are skipped so the learning map keys off real signal
