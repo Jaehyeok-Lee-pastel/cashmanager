@@ -1,6 +1,7 @@
 from app.core.timeutils import month_bounds, month_progress, today_kst
 from app.repositories import budget_repo, category_repo, tx_repo
 from app.schemas.summary import CategorySummary, MonthlySummaryOut
+from app.services import recurring_service
 
 _UNCATEGORIZED = "미분류"
 
@@ -49,7 +50,10 @@ def get_monthly_summary(user_id: str, month: str) -> MonthlySummaryOut:
     ]
     by_category.sort(key=lambda c: c.sum_minor, reverse=True)
 
-    safe, daily = _safe_to_spend(month, total_expense, limits, elapsed, total_days)
+    upcoming_fixed = recurring_service.upcoming_fixed_minor(user_id, month, elapsed, total_days)
+    safe, daily = _safe_to_spend(
+        month, total_expense, limits, elapsed, total_days, upcoming_fixed
+    )
 
     return MonthlySummaryOut(
         month=month,
@@ -61,11 +65,13 @@ def get_monthly_summary(user_id: str, month: str) -> MonthlySummaryOut:
         budget_total=(sum(limits.values()) or None),
         safe_to_spend=safe,
         daily_allowance=daily,
+        upcoming_fixed_minor=(upcoming_fixed or None),
     )
 
 
 def _safe_to_spend(
-    month: str, total_expense: int, limits: dict[str, int], elapsed: int, total_days: int
+    month: str, total_expense: int, limits: dict[str, int], elapsed: int,
+    total_days: int, upcoming_fixed: int = 0,
 ) -> tuple[int | None, int | None]:
     """(remaining budget, today's per-day allowance) for the CURRENT month only.
 
@@ -79,7 +85,9 @@ def _safe_to_spend(
     is_current = (today.year, today.month) == (year, mon)
     if not budget_total or not is_current:
         return None, None
-    remaining = budget_total - total_expense
+    # discount fixed costs still coming this month (rent/subscriptions) so the
+    # "오늘 쓸 수 있는 돈" isn't optimistic.
+    remaining = budget_total - total_expense - upcoming_fixed
     days_left = total_days - elapsed + 1  # include today
     daily = round(remaining / days_left) if days_left > 0 else None
     return remaining, daily

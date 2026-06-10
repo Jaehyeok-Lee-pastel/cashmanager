@@ -80,6 +80,9 @@ export function SummaryScreen({ month, onMonthChange }: Props) {
                   <div className="safe-amount">{formatKRW(summary.daily_allowance)}</div>
                   <div className="safe-sub">
                     이번 달 남은 예산 {formatKRW(summary.safe_to_spend)}
+                    {summary.upcoming_fixed_minor != null && (
+                      <> · 고정비 {formatKRW(summary.upcoming_fixed_minor)} 차감</>
+                    )}
                   </div>
                 </>
               ) : (

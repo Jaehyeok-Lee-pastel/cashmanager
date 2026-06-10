@@ -919,6 +919,56 @@ label {
   width: 100%;
   margin-top: var(--space-4);
 }
+.recurring-form {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  margin: var(--space-3) 0;
+}
+.recurring-form input,
+.recurring-form select {
+  flex: 1 1 40%;
+}
+.recurring-form .budget-input {
+  width: auto;
+  text-align: left;
+}
+.recurring-form button {
+  flex: 1 1 100%;
+}
+.recurring-list {
+  list-style: none;
+  padding: 0;
+  margin: var(--space-3) 0;
+}
+.recurring-row {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-2) 0;
+  border-bottom: 1px solid var(--color-hairline);
+}
+.rec-day {
+  flex: 0 0 auto;
+  min-width: 60px;
+  font-size: var(--text-xs);
+  color: var(--color-text-3);
+}
+.rec-main {
+  flex: 1;
+  font-size: var(--text-sm);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.rec-amount {
+  flex: 0 0 auto;
+  font-weight: 600;
+}
+.recurring-screen > button {
+  width: 100%;
+  margin-top: var(--space-3);
+}
 .budget-list {
   list-style: none;
   padding: 0;

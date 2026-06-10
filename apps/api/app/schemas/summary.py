@@ -23,5 +23,6 @@ class MonthlySummaryOut(BaseModel):
     projected_expense: int | None = None
     # Safe-to-spend (current month only; None when no budget set):
     budget_total: int | None = None  # sum of category budgets
-    safe_to_spend: int | None = None  # budget_total - spent (may be negative)
+    safe_to_spend: int | None = None  # budget_total - spent - upcoming fixed (may be negative)
     daily_allowance: int | None = None  # safe_to_spend / days left incl. today
+    upcoming_fixed_minor: int | None = None  # fixed costs still due this month

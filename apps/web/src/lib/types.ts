@@ -73,6 +73,24 @@ export interface BudgetSuggestion {
   suggested_minor: number;
 }
 
+export interface RecurringRule {
+  id: string;
+  category_id: string | null;
+  amount_minor: number;
+  direction: Direction;
+  day_of_month: number;
+  memo: string | null;
+  active: boolean;
+}
+
+export interface RecurringCreate {
+  category_id: string | null;
+  amount_minor: number;
+  direction: Direction;
+  day_of_month: number;
+  memo: string | null;
+}
+
 export type InsightSeverity = "alert" | "warn" | "info";
 
 export interface InsightCard {
@@ -96,4 +114,5 @@ export interface MonthlySummary {
   budget_total: number | null; // sum of category budgets (null = none set)
   safe_to_spend: number | null; // remaining budget this month (may be negative)
   daily_allowance: number | null; // today's per-day allowance (null = N/A)
+  upcoming_fixed_minor: number | null; // fixed costs still due this month
 }

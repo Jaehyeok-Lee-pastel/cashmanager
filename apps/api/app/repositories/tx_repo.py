@@ -52,6 +52,25 @@ def list_all(user_id: str) -> list[dict]:
         start += _EXPORT_PAGE
 
 
+def recurring_ids_in_month(user_id: str, month_start: str, month_end: str) -> set[str]:
+    """recurring_rule ids already materialized into transactions this month."""
+    response = (
+        get_supabase()
+        .table(_TABLE)
+        .select("parse_meta")
+        .eq("user_id", user_id)
+        .gte("occurred_on", month_start)
+        .lt("occurred_on", month_end)
+        .execute()
+    )
+    ids: set[str] = set()
+    for row in response.data or []:
+        rid = (row.get("parse_meta") or {}).get("recurring_id")
+        if rid:
+            ids.add(rid)
+    return ids
+
+
 def list_for_summary(user_id: str, month_start: str, month_end: str) -> list[dict]:
     response = (
         get_supabase()

@@ -8,6 +8,8 @@ import type {
   MonthlySummary,
   ParseResult,
   Profile,
+  RecurringCreate,
+  RecurringRule,
   Transaction,
   TransactionCreate,
 } from "./types";
@@ -77,6 +79,16 @@ export const getBudgetTemplate = (incomeMinor: number, token: string) =>
   apiGet<BudgetSuggestion[]>(`/budgets/template?income_minor=${incomeMinor}`, token);
 export const deleteBudget = (categoryId: string, token: string) =>
   apiDelete(`/budgets/${categoryId}`, token);
+
+// --- Recurring (fixed) expenses ---
+export const getRecurring = (token: string) =>
+  apiGet<RecurringRule[]>("/recurring", token);
+export const createRecurring = (payload: RecurringCreate, token: string) =>
+  apiPost<RecurringRule>("/recurring", payload, token);
+export const deleteRecurring = (id: string, token: string) =>
+  apiDelete(`/recurring/${id}`, token);
+export const materializeRecurring = (month: string, token: string) =>
+  apiPost<{ created: number }>(`/recurring/materialize?month=${month}`, {}, token);
 
 // --- Analysis (AI) ---
 export const getInsights = (month: string, token: string) =>

@@ -14,6 +14,7 @@ from app.api.routes import (
     health,
     insights,
     me,
+    recurring,
     summary,
     transactions,
 )
@@ -21,7 +22,7 @@ from app.core.config import settings
 
 
 _API_PREFIXES = ("/me", "/categories", "/transactions", "/summary",
-                 "/budgets", "/insights", "/assistant")
+                 "/budgets", "/insights", "/assistant", "/recurring")
 
 logging.getLogger("cashmanager").setLevel(logging.INFO)
 _req_log = logging.getLogger("cashmanager.request")
@@ -82,6 +83,7 @@ def create_app() -> FastAPI:
     app.include_router(budgets.router)
     app.include_router(insights.router)
     app.include_router(assistant.router)
+    app.include_router(recurring.router)
 
     _serve_web(app)
     return app

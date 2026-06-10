@@ -1,6 +1,6 @@
-import { ChevronRight, Settings, Tags, Wallet, type LucideIcon } from "lucide-react";
+import { ChevronRight, Repeat, Settings, Tags, Wallet, type LucideIcon } from "lucide-react";
 
-type MoreTarget = "budgets" | "categories" | "settings";
+type MoreTarget = "budgets" | "recurring" | "categories" | "settings";
 
 interface Props {
   onNavigate: (view: MoreTarget) => void;
@@ -8,6 +8,7 @@ interface Props {
 
 const ITEMS: { key: MoreTarget; label: string; icon: LucideIcon }[] = [
   { key: "budgets", label: "예산", icon: Wallet },
+  { key: "recurring", label: "고정지출", icon: Repeat },
   { key: "categories", label: "카테고리", icon: Tags },
   { key: "settings", label: "설정", icon: Settings },
 ];

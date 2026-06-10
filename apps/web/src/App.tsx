@@ -9,6 +9,7 @@ import { CategoryScreen } from "./features/categories/CategoryScreen";
 import { HistoryScreen } from "./features/history/HistoryScreen";
 import { HomeScreen } from "./features/ledger/HomeScreen";
 import { MoreScreen } from "./features/more/MoreScreen";
+import { RecurringScreen } from "./features/recurring/RecurringScreen";
 import { SettingsScreen } from "./features/settings/SettingsScreen";
 import { SummaryScreen } from "./features/summary/SummaryScreen";
 import { currentMonth } from "./lib/money";
@@ -20,6 +21,7 @@ type View =
   | "analysis"
   | "more"
   | "budgets"
+  | "recurring"
   | "categories"
   | "settings";
 
@@ -32,7 +34,7 @@ const TABS: { key: View; label: string }[] = [
 ];
 
 // which top-level tab stays highlighted while in a "더보기" sub-screen
-const MORE_SUBVIEWS: View[] = ["more", "budgets", "categories", "settings"];
+const MORE_SUBVIEWS: View[] = ["more", "budgets", "recurring", "categories", "settings"];
 
 export function App() {
   const { session, loading, recovery, signOut } = useAuth();
@@ -75,6 +77,7 @@ export function App() {
         {view === "analysis" && <AnalysisScreen month={month} />}
         {view === "more" && <MoreScreen onNavigate={setView} />}
         {view === "budgets" && <BudgetScreen />}
+        {view === "recurring" && <RecurringScreen />}
         {view === "categories" && <CategoryScreen />}
         {view === "settings" && <SettingsScreen />}
       </main>
