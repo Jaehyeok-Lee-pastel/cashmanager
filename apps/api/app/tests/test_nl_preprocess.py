@@ -46,6 +46,28 @@ def test_parse_amount_none_when_no_number():
     assert nl_preprocess.parse_amount("커피 마심") is None
 
 
+@pytest.mark.parametrize("text,expected", [
+    ("5만 1천원", 51000),   # space-separated units merge into one amount
+    ("삼만 오천원", 35000),
+    ("오만 천원", 51000),
+])
+def test_parse_amount_spaced_units(text: str, expected: int):
+    assert nl_preprocess.parse_amount(text) == expected
+
+
+@pytest.mark.parametrize("text,expected", [
+    ("내일모레 약속 5000", date(2026, 6, 4)),
+    ("모레 커피 4000", date(2026, 6, 4)),
+    ("글피 모임 3000", date(2026, 6, 5)),
+    ("다음주 월요일 점심 9000", date(2026, 6, 8)),
+    ("다음주 수요일 5000", date(2026, 6, 10)),
+    ("담주 금요일 회식 50000", date(2026, 6, 12)),
+])
+def test_parse_date_future_words(text: str, expected: date):
+    resolved, _ = nl_preprocess.parse_date(text, TODAY)
+    assert resolved == expected
+
+
 @pytest.mark.parametrize(
     "text",
     [

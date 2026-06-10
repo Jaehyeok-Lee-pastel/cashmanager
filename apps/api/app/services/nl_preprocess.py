@@ -63,14 +63,34 @@ def _parse_korean_number(run: str) -> int | None:
     return int(total) if total > 0 else None
 
 
+def _merged_runs(text: str) -> list[str]:
+    """Number runs, merging ones separated only by whitespace so "5만 1천원" reads
+    as one amount (51000). Only merges when the previous run ends in a unit
+    (만/천/백/십) so fragments of unrelated words ("친구 만남" -> 구|만) don't combine.
+    """
+    runs: list[str] = []
+    last_end: int | None = None
+    for m in _NUM_RUN.finditer(text):
+        if (
+            runs
+            and last_end is not None
+            and not text[last_end:m.start()].strip()
+            and runs[-1][-1] in "만천백십"
+        ):
+            runs[-1] += m.group()
+        else:
+            runs.append(m.group())
+        last_end = m.end()
+    return runs
+
+
 def _parse_units(text: str) -> int | None:
     """Parse amounts that use Korean units (만/천/백/십).
 
     Pure-digit amounts (no unit) return None here and are handled by parse_amount's
     other branches. A bare unit inside a word ("만나서", "친구 만남") is rejected.
     """
-    for match in _NUM_RUN.finditer(text):
-        run = match.group()
+    for run in _merged_runs(text):
         if not any(u in run for u in "만천백십"):
             continue  # no unit -> not a units expression
         core = run.replace("원", "")
@@ -126,6 +146,7 @@ def parse_amount(text: str) -> int | None:
 def parse_date(text: str, today: date) -> tuple[date | None, str]:
     """Return (resolved_date, text_with_date_expression_removed)."""
     for keyword, delta in (("그저께", -2), ("그제", -2), ("엊그제", -2),
+                           ("내일모레", 2), ("모레", 2), ("글피", 3),
                            ("오늘", 0), ("어제", -1), ("내일", 1)):
         if keyword in text:
             return today + timedelta(days=delta), text.replace(keyword, " ", 1)
@@ -135,7 +156,9 @@ def parse_date(text: str, today: date) -> tuple[date | None, str]:
         resolved = today - timedelta(days=int(days_ago.group(1)))
         return resolved, text[: days_ago.start()] + text[days_ago.end():]
 
-    weekday = re.search(r"(지난주\s*|저번주\s*|이번주\s*)?([월화수목금토일])요일", text)
+    weekday = re.search(
+        r"(지난주\s*|저번주\s*|이번주\s*|다음주\s*|담주\s*)?([월화수목금토일])요일", text
+    )
     if weekday:
         target = _WEEKDAY[weekday.group(2)]
         resolved = _resolve_weekday(today, target, _weekday_mode(weekday.group(1)))
@@ -182,6 +205,8 @@ def _weekday_mode(prefix: str | None) -> str:
         return "last"
     if "이번" in prefix:
         return "this"
+    if "다음" in prefix or "담주" in prefix:
+        return "next"
     return "recent"
 
 
@@ -191,6 +216,8 @@ def _resolve_weekday(today: date, target: int, mode: str) -> date:
         return monday_this - timedelta(days=7) + timedelta(days=target)
     if mode == "this":
         return monday_this + timedelta(days=target)
+    if mode == "next":
+        return monday_this + timedelta(days=7) + timedelta(days=target)
     candidate = monday_this + timedelta(days=target)  # "recent": most recent past
     if candidate > today:
         candidate -= timedelta(days=7)
