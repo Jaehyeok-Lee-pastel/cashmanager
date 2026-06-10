@@ -92,8 +92,9 @@ export function ParseConfirmCard({ result, categories, onSaved, onCancel }: Prop
       )}
       {direction === "transfer" && (
         <p className="transfer-hint">
-          카드대금은 <strong>이체</strong>로 저장돼요 — 개별 카드결제를 따로 기록했다면
-          지출에 중복으로 잡히지 않아요. (안 적어도 지출 총액은 같아요)
+          카드대금은 <strong>이체</strong>로 저장돼요(지출 합계 제외). 개별 카드결제를 따로
+          적었다면 그대로 두세요. <strong>이번 달 개별결제를 안 적었다면(가입 첫 달 등)
+          유형을 '지출'로 바꿔주세요.</strong>
         </p>
       )}
 
