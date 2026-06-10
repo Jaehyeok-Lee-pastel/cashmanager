@@ -5,13 +5,14 @@ import type { ParseResult } from "../../lib/types";
 
 interface Props {
   onParsed: (result: ParseResult) => void;
+  onOffline?: (text: string) => void; // no network -> stash for later
 }
 
 // Focus the bar only the first time it mounts this session — otherwise every
 // return to the Home tab re-mounts it and pops the mobile keyboard unprompted.
 let didAutoFocus = false;
 
-export function QuickInputBar({ onParsed }: Props) {
+export function QuickInputBar({ onParsed, onOffline }: Props) {
   const token = useToken();
   const inputRef = useRef<HTMLInputElement>(null);
   const [text, setText] = useState("");
@@ -29,6 +30,13 @@ export function QuickInputBar({ onParsed }: Props) {
     e.preventDefault();
     const trimmed = text.trim();
     if (!trimmed || busy) return;
+    // offline: stash the raw line; HomeScreen replays it when back online
+    if (onOffline && typeof navigator !== "undefined" && !navigator.onLine) {
+      onOffline(trimmed);
+      setText("");
+      setError(null);
+      return;
+    }
     setBusy(true);
     setError(null);
     try {

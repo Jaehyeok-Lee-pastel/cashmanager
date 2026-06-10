@@ -1,4 +1,5 @@
-import { useState } from "react";
+import { Flame } from "lucide-react";
+import { useEffect, useState } from "react";
 import { useToken } from "../../app/AuthProvider";
 import { useSnackbar } from "../../app/SnackbarProvider";
 import { EmptyState, ThreeState } from "../../components/states";
@@ -9,7 +10,8 @@ import {
   parseResultToCreate,
   updateTransaction,
 } from "../../lib/budget";
-import { formatKRW } from "../../lib/money";
+import { formatKRW, todayKST } from "../../lib/money";
+import { clearQueue, enqueue, readQueue } from "../../lib/offlineQueue";
 import { recentChips } from "../../lib/recent";
 import { AUTO_SAVE_MIN_CONFIDENCE, useAutoSave } from "../../lib/settings";
 import type { ParseResult, Transaction } from "../../lib/types";
@@ -20,6 +22,26 @@ import { TransactionList } from "./TransactionList";
 import { useTransactions } from "./useTransactions";
 
 const EXAMPLES = ["스벅 아메리카노 4900", "어제 택시 12000", "점심 김밥 8천원"];
+
+function shiftDay(iso: string, delta: number): string {
+  const [y, m, d] = iso.split("-").map(Number);
+  return new Date(Date.UTC(y, m - 1, d + delta)).toISOString().slice(0, 10);
+}
+
+/** Consecutive days (ending today, or yesterday if nothing logged yet today) with
+ *  at least one entry — a gentle habit nudge toward the "keep logging" goal. */
+function loggingStreak(txs: Transaction[]): number {
+  const days = new Set(txs.map((t) => t.occurred_on));
+  if (days.size === 0) return 0;
+  let cur = todayKST();
+  if (!days.has(cur)) cur = shiftDay(cur, -1);
+  let n = 0;
+  while (days.has(cur)) {
+    n++;
+    cur = shiftDay(cur, -1);
+  }
+  return n;
+}
 
 export function HomeScreen({ month }: { month: string }) {
   const token = useToken();
@@ -46,11 +68,38 @@ export function HomeScreen({ month }: { month: string }) {
     .filter((t) => t.direction === "expense")
     .reduce((sum, t) => sum + t.amount_minor, 0);
   const chips = recentChips(transactions ?? []);
+  const streak = loggingStreak(transactions ?? []);
 
   function onSaved(tx: Transaction) {
     prepend(tx);
     setPending(null);
   }
+
+  // offline: stash the raw line; replay it when connectivity returns
+  function onOffline(text: string) {
+    enqueue(text);
+    showSnackbar({ message: "오프라인이에요 — 연결되면 자동으로 저장돼요" });
+  }
+
+  async function flushQueue() {
+    const queued = readQueue();
+    if (queued.length === 0) return;
+    clearQueue();
+    for (const t of queued) {
+      try {
+        handleParsed(await parseLine(t, token));
+      } catch {
+        /* drop a line that won't parse rather than loop forever */
+      }
+    }
+  }
+
+  useEffect(() => {
+    if (navigator.onLine) flushQueue();
+    window.addEventListener("online", flushQueue);
+    return () => window.removeEventListener("online", flushQueue);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   // auto-save when very confident (and the user enabled it); else show confirm card
   async function handleParsed(result: ParseResult) {
@@ -154,6 +203,11 @@ export function HomeScreen({ month }: { month: string }) {
       <header className="month-header">
         <span className="label">{month} 지출</span>
         <strong className="tabular">{formatKRW(monthExpense)}</strong>
+        {streak >= 2 && (
+          <span className="streak-chip" title={`${streak}일 연속 기록 중`}>
+            <Flame size={13} /> {streak}일
+          </span>
+        )}
       </header>
 
       <ThreeState
@@ -206,7 +260,7 @@ export function HomeScreen({ month }: { month: string }) {
             ))}
           </div>
         )}
-        <QuickInputBar onParsed={handleParsed} />
+        <QuickInputBar onParsed={handleParsed} onOffline={onOffline} />
       </div>
     </div>
   );
