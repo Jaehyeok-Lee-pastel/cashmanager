@@ -87,11 +87,29 @@ def test_template_budgets_allocates_by_ratio(monkeypatch):
 def test_template_budgets_subtracts_investment(monkeypatch):
     monkeypatch.setattr(
         "app.repositories.category_repo.list_categories",
-        lambda uid: [{"id": "c-food", "name": "식비"}],
+        lambda uid: [{"id": "c-food", "name": "식비"}, {"id": "c-etc", "name": "기타지출"}],
     )
-    # consumable = 3,000,000 - 1,000,000(invest) = 2,000,000; 식비 24% = 480,000
-    out = budget_service.template_budgets("u", 3_000_000, 1_000_000)
-    assert next(s for s in out if s.category_id == "c-food").suggested_minor == 480000
+    # more investment -> smaller consumable -> smaller overall draft
+    low = sum(s.suggested_minor for s in budget_service.template_budgets("u", 3_000_000, 200_000))
+    high = sum(s.suggested_minor for s in budget_service.template_budgets("u", 3_000_000, 1_500_000))
+    assert high < low
+
+
+def test_template_ratios_shift_with_tightness():
+    tight = budget_service._ratios(1.0)
+    comfy = budget_service._ratios(0.0)
+    # necessities rise, discretionary falls as the budget tightens (Engel's law)
+    assert tight["식비"] > comfy["식비"]
+    assert tight["건강/의료"] > comfy["건강/의료"]
+    assert tight["문화/여가"] < comfy["문화/여가"]
+    assert tight["쇼핑"] < comfy["쇼핑"]
+    # variable share preserved at all tightness levels
+    assert abs(sum(tight.values()) - 0.78) < 1e-9
+    assert abs(sum(comfy.values()) - 0.78) < 1e-9
+    # midpoint regression: tightness 0.5 == the old flat ratios
+    mid = budget_service._ratios(0.5)
+    assert abs(mid["식비"] - 0.24) < 1e-6
+    assert abs(mid["문화/여가"] - 0.08) < 1e-6
 
 
 def test_template_budgets_fills_investment_category(monkeypatch):
