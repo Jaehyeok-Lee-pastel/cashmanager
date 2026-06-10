@@ -49,7 +49,7 @@ export function QuickInputBar({ onParsed }: Props) {
         ref={inputRef}
         type="text"
         aria-label="지출 한 줄 입력"
-        placeholder="예: 어제 김밥 4500 (말하거나 입력)"
+        placeholder="예: 어제 김밥 4500"
         maxLength={200}
         enterKeyHint="send"
         autoCapitalize="off"

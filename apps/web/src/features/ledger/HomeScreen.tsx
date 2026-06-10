@@ -28,6 +28,13 @@ export function HomeScreen({ month }: { month: string }) {
   const { transactions, loading, error, reload, prepend, remove } =
     useTransactions(month);
   const [pending, setPending] = useState<ParseResult | null>(null);
+  const [showTip, setShowTip] = useState(
+    () => localStorage.getItem("cm.onboardSeen") !== "1",
+  );
+  const dismissTip = () => {
+    localStorage.setItem("cm.onboardSeen", "1");
+    setShowTip(false);
+  };
 
   const monthExpense = (transactions ?? [])
     .filter((t) => t.direction === "expense")
@@ -98,6 +105,24 @@ export function HomeScreen({ month }: { month: string }) {
 
   return (
     <div className="home">
+      {showTip && (
+        <div className="onboard-banner" role="note">
+          <button
+            type="button"
+            className="onboard-close"
+            aria-label="안내 닫기"
+            onClick={dismissTip}
+          >
+            ×
+          </button>
+          <strong>한 줄로 적어보세요</strong>
+          <p>
+            "스벅 4900" · "어제 택시 12000" 처럼 적으면 AI가 금액·카테고리·날짜를 잡아줘요.
+            <br />
+            <b>더보기 → 설정 → 고신뢰 자동저장</b>을 켜면 확실한 건 확인 없이 바로 저장돼요.
+          </p>
+        </div>
+      )}
       <header className="month-header">
         <span className="label">{month} 지출</span>
         <strong className="tabular">{formatKRW(monthExpense)}</strong>

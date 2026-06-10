@@ -103,10 +103,10 @@ export function ParseConfirmCard({ result, categories, onSaved, onCancel }: Prop
           ref={amountRef}
           id="cc-amount"
           type="text"
-          inputMode="decimal"
+          inputMode="numeric"
           className={isAmbiguous("amount") ? "ambiguous" : ""}
-          value={amount}
-          onChange={(e) => setAmount(e.target.value)}
+          value={amount ? Number(amount).toLocaleString("ko-KR") : ""}
+          onChange={(e) => setAmount(e.target.value.replace(/[^\d]/g, ""))}
         />
       </div>
 

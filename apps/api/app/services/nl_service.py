@@ -16,7 +16,9 @@ from app.services import hangul, merchant_norm, nl_preprocess, openai_service
 logger = logging.getLogger(__name__)
 
 CONFIDENCE_THRESHOLD = 0.8
-_INCOME_HINTS = ("월급", "급여", "입금", "정산", "환급", "수입", "용돈")
+# NOTE: "정산" is intentionally excluded — it's ambiguous (정산금 받음=income vs
+# 정산금 냄=expense), so we let the LLM decide rather than force income.
+_INCOME_HINTS = ("월급", "급여", "입금", "환급", "수입", "용돈")
 _FALLBACK_CATEGORY = "기타지출"
 
 
