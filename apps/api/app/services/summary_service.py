@@ -1,4 +1,12 @@
-from app.core.timeutils import month_bounds, month_progress, today_kst
+from datetime import date, timedelta
+
+from app.core.timeutils import (
+    cycle_bounds,
+    cycle_progress,
+    month_bounds,
+    month_progress,
+    today_kst,
+)
 from app.repositories import budget_repo, category_repo, tx_repo
 from app.schemas.summary import CategorySummary, MonthlySummaryOut
 from app.services import recurring_service
@@ -10,8 +18,23 @@ _UNCATEGORIZED = "미분류"
 _MIN_ELAPSED_DAYS = 7
 
 
-def get_monthly_summary(user_id: str, month: str) -> MonthlySummaryOut:
-    start, end = month_bounds(month)
+def get_monthly_summary(
+    user_id: str, month: str, pay_anchor_day: int | None = None
+) -> MonthlySummaryOut:
+    today = today_kst()
+    cal_year, cal_mon = (int(p) for p in month.split("-", 1))
+    is_current_cal = (today.year, today.month) == (cal_year, cal_mon)
+    # Pay-cycle window only for the CURRENT month (past months keep calendar labels).
+    use_cycle = pay_anchor_day is not None and is_current_cal
+    if use_cycle:
+        start, end = cycle_bounds(today, pay_anchor_day)
+        elapsed, total_days = cycle_progress(today, pay_anchor_day)
+        is_current = True
+    else:
+        start, end = month_bounds(month)
+        elapsed, total_days = month_progress(month, today)
+        is_current = is_current_cal
+
     rows = tx_repo.list_for_summary(user_id, start, end)
 
     total_expense = sum(r["amount_minor"] for r in rows if r["direction"] == "expense")
@@ -25,8 +48,7 @@ def get_monthly_summary(user_id: str, month: str) -> MonthlySummaryOut:
         cid = r.get("category_id")
         per_category[cid] = per_category.get(cid, 0) + r["amount_minor"]
 
-    # Month-end pace projection (only for an in-progress month past the noise window).
-    elapsed, total_days = month_progress(month)
+    # Pace projection to the window end (only in-progress, past the noise window).
     in_progress = _MIN_ELAPSED_DAYS <= elapsed < total_days
 
     def project(amount: int) -> int | None:
@@ -50,16 +72,27 @@ def get_monthly_summary(user_id: str, month: str) -> MonthlySummaryOut:
     ]
     by_category.sort(key=lambda c: c.sum_minor, reverse=True)
 
-    upcoming_fixed = recurring_service.upcoming_fixed_minor(user_id, month, elapsed, total_days)
-    # money moved into investments this month is gone from spendable cash (unlike a
+    upcoming_fixed = (
+        recurring_service.upcoming_fixed_minor(user_id, start, end, today)
+        if is_current
+        else 0
+    )
+    # money moved into investments this window is gone from spendable cash (unlike a
     # card payment, it has NO matching expense entry) -> discount Safe-to-Spend too.
     invest_out = sum(r["amount_minor"] for r in rows if _is_investment_row(r, names))
     invest_target = next(
         (limits[cid] for cid, (nm, _e) in names.items() if nm == "투자" and cid in limits),
         None,
     )
+    budget_total = sum(limits.values())
+    days_left = total_days - elapsed + 1  # == days to next payday in cycle mode
     safe, daily = _safe_to_spend(
-        month, total_expense, limits, elapsed, total_days, upcoming_fixed, invest_out
+        budget_total, total_expense, upcoming_fixed, invest_out, days_left, is_current
+    )
+
+    # cycle display fields (None in calendar mode); cycle_end is the INCLUSIVE last day.
+    cycle_end_incl = (
+        (date.fromisoformat(end) - timedelta(days=1)).isoformat() if use_cycle else None
     )
 
     return MonthlySummaryOut(
@@ -69,12 +102,15 @@ def get_monthly_summary(user_id: str, month: str) -> MonthlySummaryOut:
         count=len(rows),
         by_category=by_category,
         projected_expense=project(total_expense),
-        budget_total=(sum(limits.values()) or None),
+        budget_total=(budget_total or None),
         safe_to_spend=safe,
         daily_allowance=daily,
         upcoming_fixed_minor=(upcoming_fixed or None),
         invested_minor=(invest_out or None),
         investment_target_minor=invest_target,
+        cycle_start=start if use_cycle else None,
+        cycle_end=cycle_end_incl,
+        days_to_payday=days_left if use_cycle else None,
     )
 
 
@@ -88,25 +124,18 @@ def _is_investment_row(row: dict, names: dict[str, tuple[str, str | None]]) -> b
 
 
 def _safe_to_spend(
-    month: str, total_expense: int, limits: dict[str, int], elapsed: int,
-    total_days: int, upcoming_fixed: int = 0, invest_out: int = 0,
+    budget_total: int, total_expense: int, upcoming_fixed: int, invest_out: int,
+    days_left: int, is_current: bool,
 ) -> tuple[int | None, int | None]:
-    """(remaining budget, today's per-day allowance) for the CURRENT month only.
+    """(remaining budget, today's per-day allowance) for the current window only.
 
-    daily = (total budget - spent) / days left including today. Returns (None, None)
-    when no budget is set or the month isn't the current one. `remaining` may be
-    negative (already over the total budget) — the UI shows that case differently.
+    daily = (budget - spent - upcoming fixed - invested) / days left. In cycle mode
+    days_left counts down to the next payday. Returns (None, None) when no budget is
+    set or the window isn't current. `remaining` may be negative (already over budget).
     """
-    budget_total = sum(limits.values())
-    today = today_kst()
-    year, mon = (int(p) for p in month.split("-", 1))
-    is_current = (today.year, today.month) == (year, mon)
     if not budget_total or not is_current:
         return None, None
-    # discount fixed costs still coming (rent/subscriptions) AND money already moved
-    # into investments this month, so "오늘 쓸 수 있는 돈" isn't optimistic.
     remaining = budget_total - total_expense - upcoming_fixed - invest_out
-    days_left = total_days - elapsed + 1  # include today
     daily = round(remaining / days_left) if days_left > 0 else None
     return remaining, daily
 

@@ -1,42 +1,29 @@
-from app.core.timeutils import month_progress, today_kst
 from app.services.summary_service import _is_investment_row, _safe_to_spend
 
 
-def _current_month() -> str:
-    today = today_kst()
-    return f"{today.year:04d}-{today.month:02d}"
-
-
 def test_safe_to_spend_none_without_budget():
-    assert _safe_to_spend("2026-06", 50000, {}, 10, 30) == (None, None)
+    assert _safe_to_spend(0, 50000, 0, 0, 20, True) == (None, None)
 
 
-def test_safe_to_spend_none_for_non_current_month():
-    # an obviously-past month is never the current month
-    assert _safe_to_spend("2000-01", 50000, {"c": 100000}, 31, 31) == (None, None)
+def test_safe_to_spend_none_when_not_current():
+    assert _safe_to_spend(100000, 50000, 0, 0, 20, False) == (None, None)
 
 
-def test_safe_to_spend_current_month_math():
-    month = _current_month()
-    elapsed, total = month_progress(month)
-    safe, daily = _safe_to_spend(month, 30000, {"c": 100000}, elapsed, total)
-    days_left = total - elapsed + 1
+def test_safe_to_spend_math():
+    # budget 100,000 - spent 30,000 over 21 days left
+    safe, daily = _safe_to_spend(100000, 30000, 0, 0, 21, True)
     assert safe == 70000
-    assert daily == round(70000 / days_left)
+    assert daily == round(70000 / 21)
 
 
 def test_safe_to_spend_negative_when_over_budget():
-    month = _current_month()
-    elapsed, total = month_progress(month)
-    safe, _ = _safe_to_spend(month, 150000, {"c": 100000}, elapsed, total)
+    safe, _ = _safe_to_spend(100000, 150000, 0, 0, 10, True)
     assert safe == -50000
 
 
-def test_safe_to_spend_subtracts_investment():
-    month = _current_month()
-    elapsed, total = month_progress(month)
-    # budget 1,000,000 - spent 30,000 - fixed 0 - invest 200,000 = 770,000
-    safe, _ = _safe_to_spend(month, 30000, {"c": 1000000}, elapsed, total, 0, 200000)
+def test_safe_to_spend_subtracts_fixed_and_investment():
+    # 1,000,000 - spent 30,000 - fixed 0 - invest 200,000 = 770,000
+    safe, _ = _safe_to_spend(1000000, 30000, 0, 200000, 20, True)
     assert safe == 770000
 
 

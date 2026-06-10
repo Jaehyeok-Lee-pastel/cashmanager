@@ -13,6 +13,16 @@ def get_profile(user_id: str) -> ProfileOut:
     return ProfileOut(**row)
 
 
+def get_pay_anchor_day(user_id: str) -> int | None:
+    """The user's payday (1~31), or None for calendar-month budgeting. Resilient
+    if the column/profile is absent so the summary always renders."""
+    try:
+        row = profile_repo.get_profile(user_id)
+    except Exception:  # noqa: BLE001 — summary must work before the migration
+        return None
+    return row.get("pay_anchor_day") if row else None
+
+
 def update_profile(user_id: str, payload: ProfileUpdate) -> ProfileOut:
     fields = payload.model_dump(exclude_unset=True)
     row = profile_repo.update_profile(user_id, fields)

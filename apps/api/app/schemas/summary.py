@@ -28,3 +28,8 @@ class MonthlySummaryOut(BaseModel):
     upcoming_fixed_minor: int | None = None  # fixed costs still due this month
     invested_minor: int | None = None  # moved into investments this month
     investment_target_minor: int | None = None  # 투자 category budget (monthly target)
+    # Pay-cycle window (None in calendar mode): start/end(inclusive) ISO dates +
+    # days remaining until the next payday. Lets the UI label "6.10 – 7.9 · D-9".
+    cycle_start: str | None = None
+    cycle_end: str | None = None
+    days_to_payday: int | None = None

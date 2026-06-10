@@ -85,14 +85,24 @@ def materialize_month(user_id: str, month: str) -> int:
     return created
 
 
-def upcoming_fixed_minor(user_id: str, month: str, elapsed: int, total_days: int) -> int:
-    """Sum of active EXPENSE rules still upcoming this month (day > today). Used to
-    discount Safe-to-Spend so '오늘 쓸 수 있는 돈' accounts for the rent yet to come.
-    Returns 0 for non-current months or if the table is absent."""
-    today = today_kst()
-    year, mon = (int(p) for p in month.split("-", 1))
-    if (today.year, today.month) != (year, mon):
-        return 0
+def _occurrences_in_window(day_of_month: int, start: date, end: date) -> list[date]:
+    """All dates in [start, end) when a monthly rule on `day_of_month` fires. A cycle
+    window spans two calendar months and, when payday clamps (29~31), can be >1 month
+    long — so the SAME day can fire twice (e.g. 28th in [2/28, 3/31))."""
+    occs = []
+    for year, mon in ((start.year, start.month), (end.year, end.month)):
+        occ = date(year, mon, min(day_of_month, calendar.monthrange(year, mon)[1]))
+        if start <= occ < end:
+            occs.append(occ)
+    return occs
+
+
+def upcoming_fixed_minor(user_id: str, start_iso: str, end_iso: str, today: date) -> int:
+    """Sum of active EXPENSE rules that fire LATER in this window (after today) —
+    discounts Safe-to-Spend so '오늘 쓸 수 있는 돈' accounts for rent yet to come.
+    Works for both calendar-month and pay-cycle windows. 0 if the table is absent."""
+    start = date.fromisoformat(start_iso)
+    end = date.fromisoformat(end_iso)
     try:
         rules = recurring_repo.list_rules(user_id)
     except Exception:  # noqa: BLE001 — summary must work before the migration
@@ -101,6 +111,7 @@ def upcoming_fixed_minor(user_id: str, month: str, elapsed: int, total_days: int
     for r in rules:
         if not r["active"] or r["direction"] != "expense":
             continue
-        if min(r["day_of_month"], total_days) > elapsed:
-            total += r["amount_minor"]
+        for occ in _occurrences_in_window(r["day_of_month"], start, end):
+            if occ > today:
+                total += r["amount_minor"]
     return total
