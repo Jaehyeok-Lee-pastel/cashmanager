@@ -194,6 +194,25 @@ def test_is_card_payment(text: str, expected: bool):
     assert nl_preprocess.is_card_payment(text) is expected
 
 
+@pytest.mark.parametrize("text,expected", [
+    ("주식 50만 샀어", True),
+    ("삼성전자 100만 매수", True),
+    ("펀드 30만 납입", True),
+    ("적금 20만", True),
+    ("비트코인 10만 샀어", True),
+    ("etf 50만 매수", True),
+    ("투자 50만원", True),
+    ("주식 공부 책 2만", False),   # buying a book about stocks = expense
+    ("주식 강의 5만", False),
+    ("배당금 5만", False),         # dividend = income, not an outflow
+    ("예금 이자 3천", False),
+    ("맥날 5500", False),
+    ("주차비 3000", False),
+])
+def test_is_investment(text: str, expected: bool):
+    assert nl_preprocess.is_investment(text) is expected
+
+
 @pytest.mark.parametrize(
     "text,keyword",
     [

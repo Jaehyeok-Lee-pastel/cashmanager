@@ -53,10 +53,13 @@ def _parse(user_id: str, text: str) -> ParseResult:
     occurred_on, remainder = nl_preprocess.parse_date(text, today)
     amount = nl_preprocess.parse_amount(remainder)
 
-    # 0) credit-card bill payment -> transfer (not spending). Recording it as an
-    #    expense would double-count the individual card purchases already logged.
+    # 0) money movement that isn't consumption -> transfer (excluded from spending).
+    #    Card bill = the individual purchases already logged; stock/fund/savings buy
+    #    = cash moved into an asset (you still have the money).
     if amount is not None and nl_preprocess.is_card_payment(text):
-        return _transfer_result(text, amount, occurred_on or today, name_to_id)
+        return _transfer_result(text, amount, occurred_on or today, name_to_id, "카드대금", "card_payment")
+    if amount is not None and nl_preprocess.is_investment(text):
+        return _transfer_result(text, amount, occurred_on or today, name_to_id, "투자", "investment")
 
     # 1) learned merchant map — instant, free, deterministic (improves with use)
     keyword = nl_preprocess.merchant_keyword(text)
@@ -131,19 +134,19 @@ def _map_result(
     )
 
 
-_CARD_BILL_CATEGORY = "카드대금"
-
-
 def _transfer_result(
-    text: str, amount: int, occurred_on: date, name_to_id: dict[str, str]
+    text: str, amount: int, occurred_on: date, name_to_id: dict[str, str],
+    category_name: str, route: str,
 ) -> ParseResult:
-    """A credit-card bill payment: a transfer, excluded from spending totals."""
-    cid = name_to_id.get(_norm(_CARD_BILL_CATEGORY))
+    """Money movement (card bill / investment), not consumption — a transfer that
+    is excluded from spending totals. Categorized only if the user has that category."""
+    cid = name_to_id.get(_norm(category_name))
+    name = category_name if cid else None
     return ParseResult(
         amount_minor=amount,
         direction="transfer",
         category_id=cid,
-        category_name=_CARD_BILL_CATEGORY if cid else None,
+        category_name=name,
         memo=text.strip(),
         occurred_on=occurred_on,
         confidence=0.9,
@@ -151,7 +154,7 @@ def _transfer_result(
         needs_manual=False,
         source="nl_text",
         raw_input=text,
-        parse_meta=_meta("card_payment", 0.9, _CARD_BILL_CATEGORY if cid else None),
+        parse_meta=_meta(route, 0.9, name),
     )
 
 

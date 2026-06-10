@@ -26,6 +26,18 @@ def test_card_payment_parsed_as_transfer(monkeypatch):
     assert res.needs_manual is False
 
 
+def test_investment_parsed_as_transfer(monkeypatch):
+    monkeypatch.setattr(
+        "app.repositories.category_repo.list_categories",
+        lambda uid: [{"id": "c-inv", "name": "투자"}],
+    )
+    res = nl_service.parse("u", "주식 50만 샀어")
+    assert res.direction == "transfer"
+    assert res.amount_minor == 500000
+    assert res.category_id == "c-inv"
+    assert res.parse_meta["route"] == "investment"
+
+
 def test_card_payment_without_card_category(monkeypatch):
     # no 카드대금 category exists -> still a transfer, just uncategorized
     monkeypatch.setattr(

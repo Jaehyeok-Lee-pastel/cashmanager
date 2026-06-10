@@ -247,6 +247,24 @@ def is_card_payment(text: str) -> bool:
     return bool(_CARD_PAYMENT_RE.search(text))
 
 
+# Buying stock / depositing into a fund or savings is moving cash into an asset,
+# NOT consumption -> a transfer (excluded from spending). Conservative: needs a
+# buy/deposit verb near an asset noun, so "주식 공부 책" (a book) stays an expense.
+_INVEST_RE = re.compile(
+    r"매수|매입"
+    r"|(?:주식|펀드|적금|예금|채권|국채|코인|비트코인|이더리움|암호화폐|가상화폐|etf|이더)"
+    r"\s*.{0,10}(?:샀|삿|납입|적립|불입|투자)"
+    r"|(?:적금|펀드)(?:\s|에|을|를|$)"
+    r"|투자\s*\d",
+    re.IGNORECASE,
+)
+
+
+def is_investment(text: str) -> bool:
+    """True for a stock/fund/savings purchase or deposit (-> transfer)."""
+    return bool(_INVEST_RE.search(text))
+
+
 def is_trivial(text: str) -> bool:
     """True only for a PURE number (e.g. "5000", "5,000원").
 
