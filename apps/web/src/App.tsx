@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useAuth } from "./app/AuthProvider";
 import { Spinner } from "./components/states";
 import { LoginScreen } from "./features/auth/LoginScreen";
@@ -12,6 +12,7 @@ import { MoreScreen } from "./features/more/MoreScreen";
 import { RecurringScreen } from "./features/recurring/RecurringScreen";
 import { SettingsScreen } from "./features/settings/SettingsScreen";
 import { SummaryScreen } from "./features/summary/SummaryScreen";
+import { materializeRecurring } from "./lib/budget";
 import { currentMonth } from "./lib/money";
 
 type View =
@@ -37,9 +38,18 @@ const TABS: { key: View; label: string }[] = [
 const MORE_SUBVIEWS: View[] = ["more", "budgets", "recurring", "categories", "settings"];
 
 export function App() {
-  const { session, loading, recovery, signOut } = useAuth();
+  const { session, token, loading, recovery, signOut } = useAuth();
   const [view, setView] = useState<View>("home");
   const [month, setMonth] = useState<string>(currentMonth());
+
+  // once per session: create this month's due fixed expenses (idempotent server-side)
+  const materialized = useRef(false);
+  useEffect(() => {
+    if (token && !materialized.current) {
+      materialized.current = true;
+      materializeRecurring(currentMonth(), token).catch(() => {});
+    }
+  }, [token]);
 
   if (loading) {
     return (

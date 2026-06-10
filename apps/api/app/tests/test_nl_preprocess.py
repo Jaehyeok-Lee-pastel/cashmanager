@@ -47,6 +47,14 @@ def test_parse_amount_none_when_no_number():
 
 
 @pytest.mark.parametrize("text,expected", [
+    ("100.00", 100), ("15000.5", 15000), ("3.5", 3), ("3,000.50원", 3000),
+    ("커피 4900.0", 4900),
+])
+def test_parse_amount_decimals_floored(text: str, expected: int):
+    assert nl_preprocess.parse_amount(text) == expected
+
+
+@pytest.mark.parametrize("text,expected", [
     ("5만 1천원", 51000),   # space-separated units merge into one amount
     ("삼만 오천원", 35000),
     ("오만 천원", 51000),

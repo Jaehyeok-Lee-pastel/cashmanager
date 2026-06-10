@@ -131,15 +131,18 @@ def parse_amount(text: str) -> int | None:
     if units is not None:
         return units
 
-    explicit = re.search(r"(\d+)\s*원", t)
+    # Accept an optional decimal and floor it: "100.00"->100, "15000.5"->15000
+    # (KRW is integer won; without this the trailing-digit regex would grab the
+    # fraction, e.g. "100.00"->0).
+    explicit = re.search(r"(\d+(?:\.\d+)?)\s*원", t)
     if explicit:
-        return int(explicit.group(1))
+        return int(float(explicit.group(1)))
 
     # Amounts are almost always the trailing token; a number followed by a
     # counter word (3잔, 2개) is NOT treated as an amount.
-    tail = re.search(r"(\d+)\s*$", t.strip())
+    tail = re.search(r"(\d+(?:\.\d+)?)\s*$", t.strip())
     if tail:
-        return int(tail.group(1))
+        return int(float(tail.group(1)))
     return None
 
 
