@@ -123,3 +123,11 @@ docs        00_overview … 08_coding_guidelines
 - test: hangul 6 + 금액오타 5. pytest 93 통과.
 
 **기록 표준화 (구현 완료)**: `merchant_norm.py` — 브랜드 별칭맵(맥날→맥도날드, 스벅→스타벅스 ~35) + filler/금액/날짜 토큰 제거. `merchant_keyword`가 표준명 반환 → merchant_map 키 수렴(스벅/스타벅스 한 키, 학습적중↑·LLM↓). `nl_service.parse` 래퍼가 메모 표준화("맥날 10000원 썼습니다"→memo "맥도날드"), raw_input 원문 보존. 과잉정규화 경계(고신뢰 별칭만, 모르는 상호 불변). test: merchant_norm 3묶음. pytest 115 통과, 324 QA·build 통과. v2(LLM normalized 개방형)는 보류.
+
+**A− 고도화 (성숙도 78→83→A− 도전, 5배치 구현 완료)**: 페르소나 재테스트(평균 78)·성숙도 감사(83/B+) 약점 집중. 근거 `PRODUCT_DIRECTION.md`.
+- **검증자산 코드화**: throwaway QA를 영구 pytest로 → **pytest 549**(test_qa_deterministic·test_qa_standardization 파라미터화) + 프론트 **vitest 13**(순수함수·RTL·offlineQueue) + GitHub Actions CI(ruff 핵심린트·typecheck·pytest --cov-fail-under=80·web build 머지게이트). 커버리지 84%.
+- **운영**: `/health`(liveness)+`/ready`(Supabase probe→503) 분리, request-id+구조적 요청로그 미들웨어. 자동저장 **기본 ON**(undo+카테고리 편집 자가교정 안전망).
+- **반복/고정지출 (마이그레이션 적용 필요)**: `202606060900_add_recurring.sql`(recurring_rules, RLS+소유권트리거 search_path 고정, Codex 검증). **Supabase 적용 필요.** `recurring_service`(CRUD+materialize_month: 당월 지난날짜분만 idempotent 생성·day29-31 월말클램프), summary가 미발생 고정비를 Safe-to-Spend에서 차감(`upcoming_fixed_minor`). web 더보기→고정지출 화면.
+- **망각 방어선**: 오프라인 입력 큐(`offlineQueue.ts` localStorage, QuickInputBar stash→HomeScreen online 이벤트 flush) + 입력 스트릭 칩(연속 기록일).
+- **엣지 보정**: "5만 1천원"→51000(공백단위 병합, 단어조각 가드), "내일모레/모레/글피", "다음주 X요일".
+- 저장거래 카테고리 편집 시 merchant_map 자가교정(`tx_service.update_transaction`→`_relearn_category`). 접근성: 라이트모드·큰글씨 토글(`:root[data-theme]/[data-text]` 토큰 오버라이드).
