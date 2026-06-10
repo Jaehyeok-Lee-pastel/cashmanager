@@ -115,4 +115,5 @@ export interface MonthlySummary {
   safe_to_spend: number | null; // remaining budget this month (may be negative)
   daily_allowance: number | null; // today's per-day allowance (null = N/A)
   upcoming_fixed_minor: number | null; // fixed costs still due this month
+  invested_minor: number | null; // moved into investments this month
 }

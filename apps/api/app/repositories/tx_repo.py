@@ -75,7 +75,7 @@ def list_for_summary(user_id: str, month_start: str, month_end: str) -> list[dic
     response = (
         get_supabase()
         .table(_TABLE)
-        .select("amount_minor, direction, category_id")
+        .select("amount_minor, direction, category_id, parse_meta")
         .eq("user_id", user_id)
         .gte("occurred_on", month_start)
         .lt("occurred_on", month_end)

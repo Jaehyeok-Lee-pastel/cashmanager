@@ -26,3 +26,4 @@ class MonthlySummaryOut(BaseModel):
     safe_to_spend: int | None = None  # budget_total - spent - upcoming fixed (may be negative)
     daily_allowance: int | None = None  # safe_to_spend / days left incl. today
     upcoming_fixed_minor: int | None = None  # fixed costs still due this month
+    invested_minor: int | None = None  # moved into investments this month

@@ -51,8 +51,11 @@ def get_monthly_summary(user_id: str, month: str) -> MonthlySummaryOut:
     by_category.sort(key=lambda c: c.sum_minor, reverse=True)
 
     upcoming_fixed = recurring_service.upcoming_fixed_minor(user_id, month, elapsed, total_days)
+    # money moved into investments this month is gone from spendable cash (unlike a
+    # card payment, it has NO matching expense entry) -> discount Safe-to-Spend too.
+    invest_out = sum(r["amount_minor"] for r in rows if _is_investment_row(r, names))
     safe, daily = _safe_to_spend(
-        month, total_expense, limits, elapsed, total_days, upcoming_fixed
+        month, total_expense, limits, elapsed, total_days, upcoming_fixed, invest_out
     )
 
     return MonthlySummaryOut(
@@ -66,12 +69,22 @@ def get_monthly_summary(user_id: str, month: str) -> MonthlySummaryOut:
         safe_to_spend=safe,
         daily_allowance=daily,
         upcoming_fixed_minor=(upcoming_fixed or None),
+        invested_minor=(invest_out or None),
     )
+
+
+def _is_investment_row(row: dict, names: dict[str, tuple[str, str | None]]) -> bool:
+    """A transfer that is an investment (route tag from NL, or category '투자')."""
+    if row.get("direction") != "transfer":
+        return False
+    if (row.get("parse_meta") or {}).get("route") == "investment":
+        return True
+    return names.get(row.get("category_id"), ("", None))[0] == "투자"
 
 
 def _safe_to_spend(
     month: str, total_expense: int, limits: dict[str, int], elapsed: int,
-    total_days: int, upcoming_fixed: int = 0,
+    total_days: int, upcoming_fixed: int = 0, invest_out: int = 0,
 ) -> tuple[int | None, int | None]:
     """(remaining budget, today's per-day allowance) for the CURRENT month only.
 
@@ -85,9 +98,9 @@ def _safe_to_spend(
     is_current = (today.year, today.month) == (year, mon)
     if not budget_total or not is_current:
         return None, None
-    # discount fixed costs still coming this month (rent/subscriptions) so the
-    # "오늘 쓸 수 있는 돈" isn't optimistic.
-    remaining = budget_total - total_expense - upcoming_fixed
+    # discount fixed costs still coming (rent/subscriptions) AND money already moved
+    # into investments this month, so "오늘 쓸 수 있는 돈" isn't optimistic.
+    remaining = budget_total - total_expense - upcoming_fixed - invest_out
     days_left = total_days - elapsed + 1  # include today
     daily = round(remaining / days_left) if days_left > 0 else None
     return remaining, daily

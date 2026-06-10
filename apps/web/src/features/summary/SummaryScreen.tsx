@@ -83,6 +83,9 @@ export function SummaryScreen({ month, onMonthChange }: Props) {
                     {summary.upcoming_fixed_minor != null && (
                       <> · 고정비 {formatKRW(summary.upcoming_fixed_minor)} 차감</>
                     )}
+                    {summary.invested_minor != null && (
+                      <> · 투자 {formatKRW(summary.invested_minor)} 차감</>
+                    )}
                   </div>
                 </>
               ) : (
