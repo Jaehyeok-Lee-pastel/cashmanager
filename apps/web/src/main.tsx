@@ -3,7 +3,10 @@ import ReactDOM from "react-dom/client";
 import { AuthProvider } from "./app/AuthProvider";
 import { SnackbarProvider } from "./app/SnackbarProvider";
 import { App } from "./App";
+import { initAppearance } from "./lib/settings";
 import "./styles.css";
+
+initAppearance(); // apply saved theme / text-size before first paint
 
 ReactDOM.createRoot(document.getElementById("root")!).render(
   <React.StrictMode>

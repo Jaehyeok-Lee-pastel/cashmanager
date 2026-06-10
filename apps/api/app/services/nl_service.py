@@ -18,7 +18,11 @@ logger = logging.getLogger(__name__)
 CONFIDENCE_THRESHOLD = 0.8
 # NOTE: "정산" is intentionally excluded — it's ambiguous (정산금 받음=income vs
 # 정산금 냄=expense), so we let the LLM decide rather than force income.
-_INCOME_HINTS = ("월급", "급여", "입금", "환급", "수입", "용돈")
+_INCOME_HINTS = (
+    "월급", "급여", "입금", "환급", "수입", "용돈",
+    "알바비", "알바", "과외비", "과외", "보너스", "상여금", "상여",
+    "이자", "배당", "캐시백", "부수입", "부업",
+)
 _FALLBACK_CATEGORY = "기타지출"
 
 

@@ -2,13 +2,20 @@ import { useState } from "react";
 import { useToken } from "../../app/AuthProvider";
 import { exportAllTransactions } from "../../lib/budget";
 import { downloadCsv, exportFilename, transactionsToCsv } from "../../lib/exportCsv";
-import { AUTO_SAVE_MIN_CONFIDENCE, useAutoSave } from "../../lib/settings";
+import {
+  AUTO_SAVE_MIN_CONFIDENCE,
+  useAutoSave,
+  useTextSize,
+  useTheme,
+} from "../../lib/settings";
 import { useCategories } from "../categories/useCategories";
 
 export function SettingsScreen() {
   const token = useToken();
   const { categories } = useCategories();
   const [autoSave, setAutoSave] = useAutoSave();
+  const [theme, setTheme] = useTheme();
+  const [textSize, setTextSize] = useTextSize();
   const [exporting, setExporting] = useState(false);
   const [exportMsg, setExportMsg] = useState<string | null>(null);
   const pct = Math.round(AUTO_SAVE_MIN_CONFIDENCE * 100);
@@ -34,6 +41,46 @@ export function SettingsScreen() {
   return (
     <div className="settings-screen">
       <h2>설정</h2>
+
+      <div className="setting-row">
+        <span className="setting-text">
+          <span className="setting-title">화면 테마</span>
+          <span className="setting-desc">밝은 곳에서는 라이트가 더 잘 보여요.</span>
+        </span>
+        <div className="segmented" role="group" aria-label="화면 테마">
+          {(["dark", "light"] as const).map((t) => (
+            <button
+              key={t}
+              type="button"
+              className={theme === t ? "active" : ""}
+              aria-pressed={theme === t}
+              onClick={() => setTheme(t)}
+            >
+              {t === "dark" ? "다크" : "라이트"}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      <div className="setting-row">
+        <span className="setting-text">
+          <span className="setting-title">글씨 크기</span>
+          <span className="setting-desc">작게 느껴지면 크게로 바꿔보세요.</span>
+        </span>
+        <div className="segmented" role="group" aria-label="글씨 크기">
+          {(["normal", "large"] as const).map((s) => (
+            <button
+              key={s}
+              type="button"
+              className={textSize === s ? "active" : ""}
+              aria-pressed={textSize === s}
+              onClick={() => setTextSize(s)}
+            >
+              {s === "normal" ? "보통" : "크게"}
+            </button>
+          ))}
+        </div>
+      </div>
 
       <label className="setting-row">
         <span className="setting-text">

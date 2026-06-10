@@ -105,6 +105,31 @@
   --nav-height: 56px;
 }
 
+/* Light theme — override semantic color tokens (accessibility / preference). */
+:root[data-theme="light"] {
+  --color-bg: #f6f7f9;
+  --color-surface-1: #ffffff;
+  --color-surface-2: #eef1f5;
+  --color-surface-3: #e2e6ec;
+  --color-border: #dfe3e9;
+  --color-hairline: rgba(0, 0, 0, 0.08);
+  --color-text-1: #1b1f27;
+  --color-text-2: #4b5563;
+  --color-text-3: #7a8597;
+  --color-expense: #1b1f27;
+}
+
+/* Larger text for readability — scales every var(--text-*) consumer. */
+:root[data-text="large"] {
+  --text-xs: 15px;
+  --text-sm: 16px;
+  --text-base: 18px;
+  --text-lg: 22px;
+  --text-xl: 28px;
+  --text-2xl: 34px;
+  --text-display: 44px;
+}
+
 * {
   box-sizing: border-box;
 }
@@ -1143,6 +1168,11 @@ label {
 .segmented button.active {
   background: var(--color-surface-3);
   color: var(--color-text-1);
+}
+.setting-row .segmented {
+  flex: 0 0 auto;
+  margin-bottom: 0;
+  min-width: 132px;
 }
 .filter-chips {
   display: flex;

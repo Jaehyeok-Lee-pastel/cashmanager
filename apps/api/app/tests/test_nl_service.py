@@ -1,4 +1,17 @@
+import pytest
+
 from app.services import nl_service
+
+
+@pytest.mark.parametrize("text", ["알바비 500000", "과외비 300000", "보너스 1000000", "이자 5000"])
+def test_income_keywords_block_expense_fastpath(text):
+    # income-looking lines must NOT be silently fast-pathed as an expense
+    amount = int("".join(c for c in text if c.isdigit()))
+    assert nl_service._can_fast_path(text, amount) is False
+
+
+def test_pure_number_still_fast_paths():
+    assert nl_service._can_fast_path("500000", 500000) is True
 
 
 def test_card_payment_parsed_as_transfer(monkeypatch):
