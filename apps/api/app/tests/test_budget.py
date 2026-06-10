@@ -84,6 +84,16 @@ def test_template_budgets_allocates_by_ratio(monkeypatch):
     assert ids == {"c-food"}
 
 
+def test_template_budgets_subtracts_investment(monkeypatch):
+    monkeypatch.setattr(
+        "app.repositories.category_repo.list_categories",
+        lambda uid: [{"id": "c-food", "name": "식비"}],
+    )
+    # consumable = 3,000,000 - 1,000,000(invest) = 2,000,000; 식비 24% = 480,000
+    out = budget_service.template_budgets("u", 3_000_000, 1_000_000)
+    assert next(s for s in out if s.category_id == "c-food").suggested_minor == 480000
+
+
 def test_suggest_ignores_income_and_uncategorized(monkeypatch):
     monkeypatch.setattr(
         "app.repositories.category_repo.list_categories",

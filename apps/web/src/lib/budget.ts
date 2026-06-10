@@ -75,8 +75,11 @@ export const upsertBudgets = (budgets: Budget[], token: string) =>
   apiPut<Budget[]>("/budgets", { budgets }, token);
 export const getBudgetSuggestions = (token: string) =>
   apiGet<BudgetSuggestion[]>("/budgets/suggestions", token);
-export const getBudgetTemplate = (incomeMinor: number, token: string) =>
-  apiGet<BudgetSuggestion[]>(`/budgets/template?income_minor=${incomeMinor}`, token);
+export const getBudgetTemplate = (incomeMinor: number, investMinor: number, token: string) =>
+  apiGet<BudgetSuggestion[]>(
+    `/budgets/template?income_minor=${incomeMinor}&invest_minor=${investMinor}`,
+    token,
+  );
 export const deleteBudget = (categoryId: string, token: string) =>
   apiDelete(`/budgets/${categoryId}`, token);
 

@@ -81,14 +81,17 @@ def suggest_budgets(user_id: str) -> list[BudgetSuggestion]:
     return suggestions
 
 
-def template_budgets(user_id: str, income_minor: int) -> list[BudgetSuggestion]:
-    """Cold-start draft: split (income x consume ratio) across categories by template.
+def template_budgets(
+    user_id: str, income_minor: int, invest_minor: int = 0
+) -> list[BudgetSuggestion]:
+    """Cold-start draft: 소비예산 = 소득 − 투자(저축), split across variable categories.
 
-    For brand-new users with no history (suggest_budgets returns nothing). Maps by
-    category NAME, so only the default categories get a draft; custom categories and
-    카드대금 (ratio 0) are skipped.
+    invest_minor (월 투자/저축) is subtracted so investors don't over-budget. When not
+    given, a default 30% savings is assumed (consumable = income x 0.70, the old
+    behavior). Maps by category NAME; fixed (주거/통신)·카드대금 stay out.
     """
-    consumable = income_minor * _CONSUME_RATIO
+    invest = invest_minor if invest_minor > 0 else round(income_minor * (1 - _CONSUME_RATIO))
+    consumable = max(0, income_minor - invest)
     suggestions = []
     for c in category_repo.list_categories(user_id):
         ratio = _TEMPLATE_RATIOS.get(c["name"])

@@ -31,9 +31,10 @@ def suggest_budgets(user: CurrentUserDep) -> list[BudgetSuggestion]:
 def template_budgets(
     user: CurrentUserDep,
     income_minor: int = Query(gt=0, le=_MAX_INCOME),
+    invest_minor: int = Query(0, ge=0, le=_MAX_INCOME),
 ) -> list[BudgetSuggestion]:
-    """Cold-start draft from monthly income (for new users with no history)."""
-    return budget_service.template_budgets(user.user_id, income_minor)
+    """Cold-start draft: 소비예산 = 소득 − 투자, split across categories."""
+    return budget_service.template_budgets(user.user_id, income_minor, invest_minor)
 
 
 @router.delete("/{category_id}", status_code=status.HTTP_204_NO_CONTENT)

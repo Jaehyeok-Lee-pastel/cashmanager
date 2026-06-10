@@ -23,6 +23,7 @@ export function BudgetScreen() {
   const [busy, setBusy] = useState(false);
   const [notice, setNotice] = useState<string | null>(null);
   const [income, setIncome] = useState("");
+  const [invest, setInvest] = useState("");
 
   useEffect(() => {
     if (budgets) {
@@ -45,16 +46,21 @@ export function BudgetScreen() {
     }
   }
 
-  // cold start (no 3-month history yet): draft a budget from monthly income.
+  // cold start (no 3-month history yet): draft a budget from income − investment.
   async function applyTemplate() {
-    const won = Number(income.replace(/[,\s]/g, ""));
+    const won = Number(income.replace(/[^\d]/g, ""));
+    const investWon = Number(invest.replace(/[^\d]/g, "")) || 0;
     if (!won || won <= 0) {
       setNotice("월 실수령액을 입력해주세요.");
       return;
     }
+    if (investWon >= won) {
+      setNotice("투자/저축이 소득보다 크거나 같아요. 다시 확인해주세요.");
+      return;
+    }
     setNotice(null);
     try {
-      const suggestions = await getBudgetTemplate(won, token);
+      const suggestions = await getBudgetTemplate(won, investWon, token);
       if (suggestions.length === 0) {
         setNotice("초안을 만들 카테고리가 없어요.");
         return;
@@ -64,7 +70,8 @@ export function BudgetScreen() {
         for (const s of suggestions) next[s.category_id] = String(s.suggested_minor);
         return next;
       });
-      setNotice("소득 기준 임시 초안을 만들었어요. 확인 후 저장하세요.");
+      const consume = won - (investWon || Math.round(won * 0.3));
+      setNotice(`소비예산 ${consume.toLocaleString("ko-KR")}원으로 초안을 만들었어요. 확인 후 저장하세요.`);
     } catch {
       setNotice("초안을 만들지 못했어요.");
     }
@@ -108,8 +115,8 @@ export function BudgetScreen() {
       <details className="budget-onboarding">
         <summary>처음이신가요? 소득으로 예산 초안 만들기</summary>
         <p className="onboard-note">
-          조절 가능한 지출만 먼저 채워드려요. 주거비·통신비·카드대금은 사람마다 달라서
-          실제 금액을 직접 넣어주세요. 언제든 수정·저장할 수 있어요.
+          소득에서 <strong>월 투자/저축</strong>을 빼고 남은 돈으로 소비예산 초안을
+          만들어요. 주거비·통신비·카드대금은 직접 넣어주세요. 언제든 수정·저장 가능해요.
         </p>
         <div className="onboard-row">
           <input
@@ -120,6 +127,15 @@ export function BudgetScreen() {
             placeholder="월 실수령액 (원)"
             value={income}
             onChange={(e) => setIncome(e.target.value)}
+          />
+          <input
+            type="text"
+            inputMode="numeric"
+            className="budget-input"
+            aria-label="월 투자·저축 (선택)"
+            placeholder="월 투자·저축 (선택)"
+            value={invest}
+            onChange={(e) => setInvest(e.target.value)}
           />
           <button type="button" className="ghost" onClick={applyTemplate} disabled={busy}>
             초안 만들기
