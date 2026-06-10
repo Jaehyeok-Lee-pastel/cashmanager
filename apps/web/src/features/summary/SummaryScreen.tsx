@@ -53,7 +53,10 @@ export function SummaryScreen({ month, onMonthChange }: Props) {
   }, [month, token]);
 
   const grouped = summary ? groupCategories(summary.by_category) : [];
-  const net = summary ? summary.total_income - summary.total_expense : 0;
+  // cash left = income − spending − money moved into investments (real outflow)
+  const net = summary
+    ? summary.total_income - summary.total_expense - (summary.invested_minor ?? 0)
+    : 0;
 
   return (
     <div className="summary-screen">
