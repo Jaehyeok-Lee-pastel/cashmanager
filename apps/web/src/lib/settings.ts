@@ -48,10 +48,12 @@ export function useTextSize(): [TextSize, (v: TextSize) => void] {
 /** Auto-save kicks in only for very confident parses. */
 export const AUTO_SAVE_MIN_CONFIDENCE = 0.95;
 
-/** localStorage-backed per-device preference (default OFF — conservative). */
+/** localStorage-backed per-device preference. Default ON: the high-confidence
+ *  auto-save IS the product's core magic, and every auto-save has an undo
+ *  snackbar + the saved-tx category is editable, so wrong saves are recoverable. */
 export function useAutoSave(): [boolean, (value: boolean) => void] {
   const [on, setOn] = useState<boolean>(
-    () => localStorage.getItem(AUTO_SAVE_KEY) === "1",
+    () => localStorage.getItem(AUTO_SAVE_KEY) !== "0",
   );
   const set = (value: boolean) => {
     localStorage.setItem(AUTO_SAVE_KEY, value ? "1" : "0");

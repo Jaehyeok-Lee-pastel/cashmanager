@@ -1,4 +1,7 @@
+import logging
 import os
+import time
+import uuid
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
@@ -20,6 +23,9 @@ from app.core.config import settings
 _API_PREFIXES = ("/me", "/categories", "/transactions", "/summary",
                  "/budgets", "/insights", "/assistant")
 
+logging.getLogger("cashmanager").setLevel(logging.INFO)
+_req_log = logging.getLogger("cashmanager.request")
+
 
 def create_app() -> FastAPI:
     is_prod = settings.app_env == "production"
@@ -38,6 +44,22 @@ def create_app() -> FastAPI:
         allow_methods=["GET", "POST", "PATCH", "PUT", "DELETE", "OPTIONS"],
         allow_headers=["Authorization", "Content-Type"],
     )
+
+    @app.middleware("http")
+    async def request_context(request, call_next):
+        """Attach a request id + log one structured line per API request (timing,
+        status). Lightweight observability without an external collector."""
+        rid = request.headers.get("X-Request-ID") or uuid.uuid4().hex[:12]
+        start = time.monotonic()
+        response = await call_next(request)
+        response.headers["X-Request-ID"] = rid
+        if any(request.url.path.startswith(p) for p in _API_PREFIXES):
+            dur_ms = int((time.monotonic() - start) * 1000)
+            _req_log.info(
+                "rid=%s %s %s status=%s dur_ms=%s",
+                rid, request.method, request.url.path, response.status_code, dur_ms,
+            )
+        return response
 
     @app.middleware("http")
     async def security_headers(request, call_next):

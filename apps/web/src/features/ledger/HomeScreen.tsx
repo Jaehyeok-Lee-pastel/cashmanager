@@ -137,14 +137,16 @@ export function HomeScreen({ month }: { month: string }) {
           <p>
             "스벅 4900" · "어제 택시 12000" 처럼 적으면 AI가 금액·카테고리·날짜를 잡아줘요.
           </p>
-          {!autoSave && (
+          {autoSave ? (
+            <p className="onboard-note-on">
+              ✓ 확실한 건 확인 없이 자동저장돼요 (실행취소 가능 · 설정에서 끌 수 있어요)
+            </p>
+          ) : (
             <div className="onboard-cta-row">
               <button type="button" className="onboard-cta" onClick={enableAutoSave}>
                 고신뢰 자동저장 켜기
               </button>
-              <span className="onboard-cta-note">
-                확실한 건 확인 없이 바로 저장돼요 (실행취소 가능)
-              </span>
+              <span className="onboard-cta-note">확실한 건 확인 없이 바로 저장돼요</span>
             </div>
           )}
         </div>
