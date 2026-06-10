@@ -1,7 +1,7 @@
 from app.services.supabase import get_supabase, single_or_none
 
 _TABLE = "transactions"
-_COLS = "id, amount_minor, direction, category_id, memo, occurred_on, source, created_at"
+_COLS = "id, amount_minor, direction, category_id, memo, occurred_on, source, created_at, raw_input"
 
 
 def list_transactions(

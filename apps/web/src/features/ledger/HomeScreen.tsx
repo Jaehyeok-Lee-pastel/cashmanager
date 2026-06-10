@@ -7,6 +7,7 @@ import {
   deleteTransaction,
   parseLine,
   parseResultToCreate,
+  updateTransaction,
 } from "../../lib/budget";
 import { formatKRW } from "../../lib/money";
 import { recentChips } from "../../lib/recent";
@@ -84,6 +85,18 @@ export function HomeScreen({ month }: { month: string }) {
     }
   }
 
+  // correcting a category also re-trains the merchant map (server-side), so the
+  // next auto-classify of that merchant is right.
+  async function onRecategorize(id: string, categoryId: string | null) {
+    try {
+      await updateTransaction(id, { category_id: categoryId }, token);
+      reload();
+      showSnackbar({ message: "카테고리를 바꿨어요" });
+    } catch {
+      showSnackbar({ message: "변경에 실패했어요" });
+    }
+  }
+
   // optimistic delete + undo snackbar; real delete fires after the snackbar window
   function onDelete(tx: Transaction) {
     remove(tx.id);
@@ -155,6 +168,7 @@ export function HomeScreen({ month }: { month: string }) {
             transactions={txs}
             categories={categories ?? []}
             onDelete={onDelete}
+            onRecategorize={onRecategorize}
           />
         )}
       </ThreeState>

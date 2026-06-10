@@ -627,6 +627,36 @@ label {
   color: var(--color-text-3); /* neutral: a transfer is not spending or income */
   font-weight: 500;
 }
+.tx-sub-edit {
+  background: none;
+  border: none;
+  padding: 0;
+  margin: 0;
+  font: inherit;
+  color: var(--color-text-3);
+  font-size: var(--text-xs);
+  text-align: left;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+}
+.tx-edit-hint {
+  opacity: 0;
+  font-size: 11px;
+  transition: opacity var(--motion-fast);
+}
+.tx-sub-edit:hover .tx-edit-hint,
+.tx-sub-edit:focus-visible .tx-edit-hint {
+  opacity: 0.6;
+}
+.tx-cat-select {
+  font-size: var(--text-xs);
+  padding: 2px var(--space-1);
+  min-height: 0;
+  height: auto;
+  margin-top: 2px;
+}
 
 /* ============================================================
    Categories

@@ -52,13 +52,19 @@ def _learn_merchant(user_id: str, payload: TransactionCreate) -> None:
     """Remember merchant -> category so future inputs classify without the LLM."""
     if payload.direction != "expense":
         return  # transfers/income carry no merchant->category signal
-    if not payload.category_id or not payload.raw_input:
+    _relearn_category(user_id, payload.raw_input, payload.category_id)
+
+
+def _relearn_category(user_id: str, raw_input: str | None, category_id: str | None) -> None:
+    """Upsert merchant -> category. Used on create AND on later category edits, so
+    correcting a wrongly-auto-classified transaction also fixes future ones."""
+    if not raw_input or not category_id:
         return
-    keyword = nl_preprocess.merchant_keyword(payload.raw_input)
+    keyword = nl_preprocess.merchant_keyword(raw_input)
     if not keyword:
         return
     try:
-        merchant_map_repo.upsert(user_id, keyword, payload.category_id)
+        merchant_map_repo.upsert(user_id, keyword, category_id)
     except Exception as exc:  # noqa: BLE001 — learning is best-effort
         logger.warning("merchant map upsert failed: %s", exc)
 
@@ -66,7 +72,8 @@ def _learn_merchant(user_id: str, payload: TransactionCreate) -> None:
 def update_transaction(
     user_id: str, tx_id: str, payload: TransactionUpdate
 ) -> TransactionOut:
-    if tx_repo.get_transaction(user_id, tx_id) is None:
+    existing = tx_repo.get_transaction(user_id, tx_id)
+    if existing is None:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND, detail="거래를 찾을 수 없습니다."
         )
@@ -80,6 +87,10 @@ def update_transaction(
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND, detail="거래를 찾을 수 없습니다."
         )
+    # correcting a category re-trains the merchant map so the next auto-classify
+    # of that merchant is right (the critics' "undo wrongly-learned" path).
+    if "category_id" in fields and fields["category_id"] and row.get("direction") == "expense":
+        _relearn_category(user_id, existing.get("raw_input"), fields["category_id"])
     return TransactionOut(**row)
 
 
