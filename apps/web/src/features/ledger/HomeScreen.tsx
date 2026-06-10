@@ -24,7 +24,7 @@ const EXAMPLES = ["스벅 아메리카노 4900", "어제 택시 12000", "점심 
 export function HomeScreen({ month }: { month: string }) {
   const token = useToken();
   const showSnackbar = useSnackbar();
-  const [autoSave] = useAutoSave();
+  const [autoSave, setAutoSave] = useAutoSave();
   const { categories } = useCategories();
   const { transactions, loading, error, reload, prepend, remove } =
     useTransactions(month);
@@ -35,6 +35,11 @@ export function HomeScreen({ month }: { month: string }) {
   const dismissTip = () => {
     localStorage.setItem("cm.onboardSeen", "1");
     setShowTip(false);
+  };
+  const enableAutoSave = () => {
+    setAutoSave(true);
+    dismissTip();
+    showSnackbar({ message: "자동저장을 켰어요 — 확실한 건 확인 없이 저장돼요" });
   };
 
   const monthExpense = (transactions ?? [])
@@ -131,9 +136,17 @@ export function HomeScreen({ month }: { month: string }) {
           <strong>한 줄로 적어보세요</strong>
           <p>
             "스벅 4900" · "어제 택시 12000" 처럼 적으면 AI가 금액·카테고리·날짜를 잡아줘요.
-            <br />
-            <b>더보기 → 설정 → 고신뢰 자동저장</b>을 켜면 확실한 건 확인 없이 바로 저장돼요.
           </p>
+          {!autoSave && (
+            <div className="onboard-cta-row">
+              <button type="button" className="onboard-cta" onClick={enableAutoSave}>
+                고신뢰 자동저장 켜기
+              </button>
+              <span className="onboard-cta-note">
+                확실한 건 확인 없이 바로 저장돼요 (실행취소 가능)
+              </span>
+            </div>
+          )}
         </div>
       )}
       <header className="month-header">
