@@ -94,6 +94,13 @@ def template_budgets(
     consumable = max(0, income_minor - invest)
     suggestions = []
     for c in category_repo.list_categories(user_id):
+        # the 투자 category holds the monthly investment target the user entered
+        if c["name"] == "투자":
+            if invest_minor > 0:
+                suggestions.append(
+                    BudgetSuggestion(category_id=c["id"], name="투자", suggested_minor=invest_minor)
+                )
+            continue
         ratio = _TEMPLATE_RATIOS.get(c["name"])
         if not ratio:
             continue

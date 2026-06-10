@@ -132,6 +132,18 @@ export function SummaryScreen({ month, onMonthChange }: Props) {
             </div>
           </div>
 
+          {(summary.invested_minor != null || summary.investment_target_minor != null) && (
+            <div className="invest-line">
+              <span className="label">투자</span>
+              <strong className="tabular">
+                {formatKRW(summary.invested_minor ?? 0)}
+                {summary.investment_target_minor != null && (
+                  <span className="muted"> / 목표 {formatKRW(summary.investment_target_minor)}</span>
+                )}
+              </strong>
+            </div>
+          )}
+
           {grouped.length > 0 && (
             <ul className="summary-breakdown">
               {grouped.map((c, i) => {

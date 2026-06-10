@@ -921,6 +921,17 @@ label {
   color: var(--color-text-2);
   margin-top: var(--space-2);
 }
+.invest-line {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--space-2) 0;
+  border-top: 1px solid var(--color-hairline);
+  font-size: var(--text-sm);
+}
+.invest-line .label {
+  color: var(--color-text-2);
+}
 .pace-line strong {
   color: var(--color-text-1);
   font-variant-numeric: tabular-nums;

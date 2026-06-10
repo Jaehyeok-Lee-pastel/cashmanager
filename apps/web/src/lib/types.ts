@@ -116,4 +116,5 @@ export interface MonthlySummary {
   daily_allowance: number | null; // today's per-day allowance (null = N/A)
   upcoming_fixed_minor: number | null; // fixed costs still due this month
   invested_minor: number | null; // moved into investments this month
+  investment_target_minor: number | null; // 투자 category budget (monthly target)
 }

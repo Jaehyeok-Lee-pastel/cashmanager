@@ -54,6 +54,10 @@ def get_monthly_summary(user_id: str, month: str) -> MonthlySummaryOut:
     # money moved into investments this month is gone from spendable cash (unlike a
     # card payment, it has NO matching expense entry) -> discount Safe-to-Spend too.
     invest_out = sum(r["amount_minor"] for r in rows if _is_investment_row(r, names))
+    invest_target = next(
+        (limits[cid] for cid, (nm, _e) in names.items() if nm == "투자" and cid in limits),
+        None,
+    )
     safe, daily = _safe_to_spend(
         month, total_expense, limits, elapsed, total_days, upcoming_fixed, invest_out
     )
@@ -70,6 +74,7 @@ def get_monthly_summary(user_id: str, month: str) -> MonthlySummaryOut:
         daily_allowance=daily,
         upcoming_fixed_minor=(upcoming_fixed or None),
         invested_minor=(invest_out or None),
+        investment_target_minor=invest_target,
     )
 
 

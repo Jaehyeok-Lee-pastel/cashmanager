@@ -94,6 +94,16 @@ def test_template_budgets_subtracts_investment(monkeypatch):
     assert next(s for s in out if s.category_id == "c-food").suggested_minor == 480000
 
 
+def test_template_budgets_fills_investment_category(monkeypatch):
+    monkeypatch.setattr(
+        "app.repositories.category_repo.list_categories",
+        lambda uid: [{"id": "c-food", "name": "식비"}, {"id": "c-inv", "name": "투자"}],
+    )
+    out = budget_service.template_budgets("u", 3_000_000, 800_000)
+    # the 투자 category gets the entered investment amount as its monthly target
+    assert next(s for s in out if s.category_id == "c-inv").suggested_minor == 800000
+
+
 def test_suggest_ignores_income_and_uncategorized(monkeypatch):
     monkeypatch.setattr(
         "app.repositories.category_repo.list_categories",
