@@ -1,7 +1,7 @@
 import { useMemo, useState } from "react";
 import { ErrorState, Spinner } from "../../components/states";
 import { CategoryIcon } from "../../lib/categoryIcon";
-import { colorForCategory, formatKRW, shiftMonth } from "../../lib/money";
+import { colorForCategory, formatKRW, formatTimeKST, shiftMonth } from "../../lib/money";
 import type { Transaction } from "../../lib/types";
 import { useCategories } from "../categories/useCategories";
 import { useTransactions } from "../ledger/useTransactions";
@@ -228,7 +228,10 @@ function HistoryRow({ tx, name }: { tx: Transaction; name: string }) {
       </span>
       <div className="tx-main">
         <span className="tx-memo">{tx.memo || name}</span>
-        <span className="tx-sub">{tx.direction === "transfer" ? "이체 · " : ""}{name}</span>
+        <span className="tx-sub">
+          {tx.direction === "transfer" ? "이체 · " : ""}{name}
+          <span className="tx-time"> · {formatTimeKST(tx.created_at)}</span>
+        </span>
       </div>
       <span className={`tx-amount ${tx.direction}`}>
         {tx.direction === "income" ? "+" : tx.direction === "expense" ? "-" : ""}
