@@ -131,3 +131,11 @@ docs        00_overview … 08_coding_guidelines
 - **망각 방어선**: 오프라인 입력 큐(`offlineQueue.ts` localStorage, QuickInputBar stash→HomeScreen online 이벤트 flush) + 입력 스트릭 칩(연속 기록일).
 - **엣지 보정**: "5만 1천원"→51000(공백단위 병합, 단어조각 가드), "내일모레/모레/글피", "다음주 X요일".
 - 저장거래 카테고리 편집 시 merchant_map 자가교정(`tx_service.update_transaction`→`_relearn_category`). 접근성: 라이트모드·큰글씨 토글(`:root[data-theme]/[data-text]` 토큰 오버라이드).
+
+**투자 처리 (구현 완료)**: 주식/펀드/적금 매수=이체(소비 아님, 자산이동). `nl_preprocess.is_investment`(자산명+매수동사, '주식 공부 책'·배당/이자 제외 가드)→transfer+카테고리'투자'. summary가 투자 이체를 Safe-to-Spend·잔액에서 차감(`_is_investment_row`, route=investment OR 카테고리'투자'; 카드대금 이체는 개별결제가 이미 지출이라 미차감). '투자' 기본 카테고리(`202606070900`), 초안에 투자액 채움(소비예산=소득−투자), 요약 '투자 실제/목표' 라인. 콜드스타트 비율은 **엥겔 보정**(`_ANCHORS` comfortable/tight, tightness=clamp((투자/소득−0.1)/0.4); 투자↑→필수재↑·재량재↓, 중앙값=현행이라 회귀0). 근거 `budget-ratio-elasticity.md`.
+
+**급여 사이클 예산 (구현 완료, 마이그레이션 적용 필요)**: 급여일≠1일이면 1일 리셋이 신뢰를 깸 → 뱅크샐러드식 '급여일 설정'으로 요약 윈도우를 [급여일~다음급여전일]로 이동. opt-in(미설정=달력월, 회귀0). 근거 `paycycle-ux-trust`(워크플로 설계).
+- 마이그레이션 `202606110900_add_pay_anchor_day.sql`(profiles.pay_anchor_day 1~31 NULL). **Supabase 적용 필요.**
+- `timeutils.{clamp_day,cycle_bounds,cycle_progress}`(말일클램프, total−elapsed+1=다음급여까지). summary가 현재월+anchor 시 사이클 윈도우로 지출·투자·고정비·페이스·일한도 일관 측정, `cycle_start/cycle_end/days_to_payday` 노출. `_safe_to_spend`는 분자·분모 동일 윈도우(분모만 바꾸는 '싼 패치'는 수학적으로 틀려 금지). `recurring.upcoming_fixed_minor`는 윈도우 기반(Codex: 31일급여 클램프 시 한 규칙 2회 발생 모두 합산). web: 기간 칩·'다음 급여일까지 N일'·예산탭 급여일 설정.
+- 후속(미구현): insights 분석탭 전월대비를 prev_cycle로, 과거 사이클 네비게이션.
+- pytest 579, vitest 13, build 통과. 백업: 브랜치 `backup/pre-paycycle` + 태그 `pre-paycycle-v1`.
