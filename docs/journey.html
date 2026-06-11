@@ -1,0 +1,282 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>캐시매니저 — 아이디어에서 A(90)까지의 여정</title>
+<style>
+  :root {
+    --bg: #0f1117; --card: #181b24; --card2: #1f2330; --line: #2a2f3d;
+    --text: #e7e9ee; --muted: #9aa3b2; --accent: #6ea8fe; --accent2: #7ee0c0;
+    --amber: #f5b542; --red: #f56565; --green: #48bb78;
+    --grad: linear-gradient(135deg, #6ea8fe 0%, #7ee0c0 100%);
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Apple SD Gothic Neo",
+      "Malgun Gothic", "Noto Sans KR", sans-serif;
+    background: var(--bg); color: var(--text); line-height: 1.65;
+    -webkit-font-smoothing: antialiased;
+  }
+  .wrap { max-width: 880px; margin: 0 auto; padding: 0 20px 80px; }
+
+  /* Hero */
+  header.hero {
+    background: var(--grad); color: #0b1020; text-align: center;
+    padding: 64px 20px 56px; margin-bottom: 8px;
+  }
+  header.hero .badge {
+    display: inline-block; background: rgba(11,16,32,0.14); color: #0b1020;
+    font-weight: 700; font-size: 13px; padding: 5px 14px; border-radius: 999px;
+    margin-bottom: 18px; letter-spacing: 0.3px;
+  }
+  header.hero h1 { font-size: 34px; font-weight: 800; letter-spacing: -0.5px; }
+  header.hero p { font-size: 16px; margin-top: 12px; opacity: 0.82; font-weight: 500; }
+  .score-hero { margin-top: 26px; display: inline-flex; align-items: baseline; gap: 10px; }
+  .score-hero .num { font-size: 62px; font-weight: 900; line-height: 1; }
+  .score-hero .grade {
+    font-size: 22px; font-weight: 800; background: #0b1020; color: #7ee0c0;
+    padding: 4px 16px; border-radius: 12px;
+  }
+
+  section { margin-top: 44px; }
+  h2 {
+    font-size: 22px; font-weight: 800; margin-bottom: 18px; letter-spacing: -0.3px;
+    display: flex; align-items: center; gap: 10px;
+  }
+  h2 .dot { width: 10px; height: 22px; border-radius: 4px; background: var(--grad); }
+  h3 { font-size: 16px; font-weight: 700; margin: 0 0 4px; }
+
+  /* Score progression */
+  .prog { background: var(--card); border: 1px solid var(--line); border-radius: 16px; padding: 22px; }
+  .prog-row { display: grid; grid-template-columns: 150px 1fr 56px; align-items: center; gap: 12px; margin: 9px 0; }
+  .prog-row .label { font-size: 13px; color: var(--muted); }
+  .prog-row .barwrap { background: var(--card2); border-radius: 999px; height: 14px; overflow: hidden; }
+  .prog-row .bar { height: 100%; border-radius: 999px; background: var(--grad); }
+  .prog-row .val { font-size: 14px; font-weight: 800; text-align: right; }
+  .prog-row.final .val { color: var(--accent2); }
+
+  /* Timeline */
+  .timeline { position: relative; padding-left: 28px; }
+  .timeline::before {
+    content: ""; position: absolute; left: 7px; top: 6px; bottom: 6px; width: 2px;
+    background: var(--line);
+  }
+  .tl-item { position: relative; margin-bottom: 22px; }
+  .tl-item::before {
+    content: ""; position: absolute; left: -28px; top: 4px; width: 16px; height: 16px;
+    border-radius: 50%; background: var(--bg); border: 3px solid var(--accent);
+  }
+  .tl-item .card { background: var(--card); border: 1px solid var(--line); border-radius: 14px; padding: 16px 18px; }
+  .tl-item .step { font-size: 12px; font-weight: 700; color: var(--accent); letter-spacing: 0.4px; }
+  .tl-item ul { margin: 8px 0 0; padding-left: 18px; }
+  .tl-item li { font-size: 14px; color: var(--muted); margin: 3px 0; }
+  .tl-item li b { color: var(--text); font-weight: 600; }
+
+  /* Dimension grid */
+  .dims { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; }
+  .dim { background: var(--card); border: 1px solid var(--line); border-radius: 12px; padding: 14px 16px; }
+  .dim .dname { font-size: 13px; color: var(--muted); }
+  .dim .dscore { font-size: 26px; font-weight: 800; margin-top: 2px; }
+  .dim .dscore small { font-size: 13px; color: var(--green); font-weight: 700; margin-left: 6px; }
+
+  /* Table */
+  table { width: 100%; border-collapse: collapse; background: var(--card); border-radius: 12px; overflow: hidden; }
+  th, td { text-align: left; padding: 11px 14px; font-size: 14px; border-bottom: 1px solid var(--line); }
+  th { background: var(--card2); font-weight: 700; color: var(--muted); font-size: 13px; }
+  td b { color: var(--accent2); }
+  tr:last-child td { border-bottom: none; }
+
+  /* Methodology badges */
+  .agents { display: grid; grid-template-columns: repeat(2,1fr); gap: 12px; }
+  .agent { background: var(--card); border: 1px solid var(--line); border-radius: 12px; padding: 14px 16px; }
+  .agent .role { font-size: 12px; color: var(--accent); font-weight: 700; }
+  .agent h3 { margin-top: 2px; }
+  .agent p { font-size: 13px; color: var(--muted); margin-top: 4px; }
+
+  .pills { display: flex; flex-wrap: wrap; gap: 8px; }
+  .pill { background: var(--card2); border: 1px solid var(--line); border-radius: 999px; padding: 6px 13px; font-size: 13px; color: var(--text); }
+  .pill b { color: var(--accent2); }
+
+  .note { background: var(--card); border-left: 3px solid var(--amber); border-radius: 8px; padding: 12px 16px; font-size: 14px; color: var(--muted); }
+  footer { margin-top: 50px; text-align: center; font-size: 13px; color: var(--muted); font-style: italic; }
+  @media (max-width: 560px) {
+    .dims, .agents { grid-template-columns: 1fr; }
+    .prog-row { grid-template-columns: 110px 1fr 44px; }
+    header.hero h1 { font-size: 26px; }
+  }
+</style>
+</head>
+<body>
+<header class="hero">
+  <div class="badge">AI 자연어 개인 가계부 · 단일사용자 dogfooding</div>
+  <h1>캐시매니저</h1>
+  <p>아이디어 창출에서 <b>A(90) Production-grade</b>까지의 여정</p>
+  <div class="score-hero">
+    <span class="num">90</span>
+    <span class="grade">A</span>
+  </div>
+</header>
+
+<div class="wrap">
+
+  <section>
+    <h2><span class="dot"></span>성숙도 점수 진행</h2>
+    <div class="prog">
+      <div class="prog-row"><span class="label">보안·기능 고도화</span><span class="barwrap"><span class="bar" style="width:93%"></span></span><span class="val">93*</span></div>
+      <div class="prog-row"><span class="label">페르소나 초기</span><span class="barwrap"><span class="bar" style="width:65%"></span></span><span class="val">65</span></div>
+      <div class="prog-row"><span class="label">페르소나(개인용)</span><span class="barwrap"><span class="bar" style="width:78%"></span></span><span class="val">78</span></div>
+      <div class="prog-row"><span class="label">성숙도 감사 B+</span><span class="barwrap"><span class="bar" style="width:83%"></span></span><span class="val">83</span></div>
+      <div class="prog-row"><span class="label">A− 5배치</span><span class="barwrap"><span class="bar" style="width:88%"></span></span><span class="val">88</span></div>
+      <div class="prog-row"><span class="label">dogfooding 재감사</span><span class="barwrap"><span class="bar" style="width:89%"></span></span><span class="val">89</span></div>
+      <div class="prog-row final"><span class="label"><b>A 재확인</b></span><span class="barwrap"><span class="bar" style="width:90%"></span></span><span class="val">90</span></div>
+      <p style="font-size:12px;color:var(--muted);margin-top:10px">*93은 당시 자체 기준. 이후 페르소나·8축 감사로 더 엄격하게 재채점.</p>
+    </div>
+  </section>
+
+  <section>
+    <h2><span class="dot"></span>여정 타임라인</h2>
+    <div class="timeline">
+
+      <div class="tl-item"><div class="card">
+        <div class="step">01 · 아이디어 &amp; 시장 검증</div>
+        <h3>입력 마찰 0의 가계부</h3>
+        <ul>
+          <li>자동연동과 정면승부 대신 <b>"수동인데 안 아픈 입력"</b>으로 우회</li>
+          <li>단일 ledger + <b>amount_minor(KRW 정수)</b> + 상호→카테고리 학습 루프</li>
+          <li>NL: 정규식 선처리 → fast-path/LLM 1회 → 미저장 미리보기 → confirm</li>
+        </ul>
+      </div></div>
+
+      <div class="tl-item"><div class="card">
+        <div class="step">02 · 보안 우선</div>
+        <h3>RLS · 인젝션 방어 · 비용통제</h3>
+        <ul>
+          <li>전 테이블 <b>RLS</b> + service 소유권 재검증 + 트리거</li>
+          <li>프롬프트 인젝션: 데이터(system)와 질문(user) <b>구조적 분리</b></li>
+          <li>rate-limit + 코치 LLM 캐시로 재과금 방지</li>
+        </ul>
+      </div></div>
+
+      <div class="tl-item"><div class="card">
+        <div class="step">03 · 기능 발굴 (수치 기반)</div>
+        <h3>F1 월예산 · F2 AI질의 · F3 인사이트</h3>
+        <ul>
+          <li>워크플로 점수화로 <b>F1 월 예산</b> 만장일치 1위</li>
+          <li>"분석" 탭: 요약·예산 컨텍스트 → LLM 한국어 답변 + 규칙 경고</li>
+          <li>forward-looking 3종: 페이스 예측 · 달력 뷰 · <b>Safe-to-Spend</b></li>
+        </ul>
+      </div></div>
+
+      <div class="tl-item"><div class="card">
+        <div class="step">04 · 회계 정확성</div>
+        <h3>카드 = 이체 · 콜드스타트 · 엥겔 보정</h3>
+        <ul>
+          <li><b>신용카드=이체</b>로 이중계산 방지(YNAB·뱅크샐러드 근거)</li>
+          <li>콜드스타트 예산 → 투자액 반영 <b>엥겔 탄력 보간</b>(필수재↑·재량재↓)</li>
+          <li>가입 첫 달 카드값 예외 인앱 안내</li>
+        </ul>
+      </div></div>
+
+      <div class="tl-item"><div class="card">
+        <div class="step">05 · 입력 견고성</div>
+        <h3>오타 복원 · 기록 표준화 · 엣지</h3>
+        <ul>
+          <li>무의존 <b>자모 오토마타</b>("기ㅁ밥"→김밥) + 금액단위 오타표</li>
+          <li>브랜드 별칭맵(맥날→맥도날드)으로 학습키 수렴</li>
+          <li>"5만 1천원"→51000, 소수점 floor, "다음주 X요일"</li>
+        </ul>
+      </div></div>
+
+      <div class="tl-item"><div class="card">
+        <div class="step">06 · 페르소나 &amp; 방향 확정</div>
+        <h3>10개 직업군 비판 → 65 → 78</h3>
+        <ul>
+          <li>3명 극비판 포함 100점 채점 → 개인용 명확화 후 재상승</li>
+          <li><b>PRODUCT_DIRECTION.md</b>: 타깃·핵심가치·비범위 확정</li>
+        </ul>
+      </div></div>
+
+      <div class="tl-item"><div class="card">
+        <div class="step">07 · 성숙도 감사 → A− 5배치</div>
+        <h3>검증자산 코드화 · 운영 하드닝</h3>
+        <ul>
+          <li>throwaway QA → 영구 <b>pytest 122→549</b> + CI 머지게이트</li>
+          <li>/health·/ready 분리 · request-id 로깅 · 반복지출 · 오프라인 큐</li>
+        </ul>
+      </div></div>
+
+      <div class="tl-item"><div class="card">
+        <div class="step">08 · Dogfooding 피드백 루프</div>
+        <h3>투자 처리 · 급여 사이클 · 분석탭 일관성</h3>
+        <ul>
+          <li><b>투자=이체</b> + Safe-to-Spend·잔액 차감 + '투자' 목표</li>
+          <li><b>급여 사이클 예산</b>: [급여일~다음급여] 윈도우(1일 리셋 제거, 분자·분모 동일 윈도우)</li>
+          <li>분석탭도 같은 사이클 · 적금/펀드 동사가드(잔액 역행 버그 해결)</li>
+        </ul>
+      </div></div>
+
+    </div>
+  </section>
+
+  <section>
+    <h2><span class="dot"></span>최종 8축 점수</h2>
+    <div class="dims">
+      <div class="dim"><div class="dname">핵심 기능 완성도</div><div class="dscore">90</div></div>
+      <div class="dim"><div class="dname">코드 품질·아키텍처</div><div class="dscore">90</div></div>
+      <div class="dim"><div class="dname">정확성·견고성</div><div class="dscore">90<small>▲ 87→90</small></div></div>
+      <div class="dim"><div class="dname">보안·프라이버시</div><div class="dscore">90</div></div>
+      <div class="dim"><div class="dname">UX·신뢰·접근성</div><div class="dscore">91<small>▲ 87→91</small></div></div>
+      <div class="dim"><div class="dname">테스트·검증</div><div class="dscore">90</div></div>
+      <div class="dim"><div class="dname">운영 준비도</div><div class="dscore">90</div></div>
+      <div class="dim"><div class="dname">제품 적합성(개인용)</div><div class="dscore">91</div></div>
+    </div>
+  </section>
+
+  <section>
+    <h2><span class="dot"></span>핵심 기술 결정</h2>
+    <table>
+      <tr><th>영역</th><th>결정</th><th>이유</th></tr>
+      <tr><td>금액</td><td><b>amount_minor</b> bigint</td><td>부동소수 오차 0</td></tr>
+      <tr><td>카드·투자</td><td>direction=<b>transfer</b> 분리</td><td>이중계산·지출오염 방지</td></tr>
+      <tr><td>급여 사이클</td><td>분자·분모 동일 윈도우</td><td>분모만 바꾸는 패치는 수학적 오류</td></tr>
+      <tr><td>오타 복원</td><td>순수 파이썬 자모 오토마타</td><td>NFC 단독 불가(호환자모)</td></tr>
+      <tr><td>예산 비율</td><td>엥겔 탄력 보간</td><td>데이터 근거 + 회귀 안전(중앙값=현행)</td></tr>
+      <tr><td>검증</td><td>QA → 영구 파라미터 테스트</td><td>발견 버그 회귀 봉인</td></tr>
+    </table>
+  </section>
+
+  <section>
+    <h2><span class="dot"></span>멀티 에이전트 방법론</h2>
+    <div class="agents">
+      <div class="agent"><div class="role">오케스트레이터 · 단일 작성자</div><h3>Claude Code</h3><p>라이브 파일 편집은 항상 Claude(two-writer 데싱크 방지). 통합·의사결정.</p></div>
+      <div class="agent"><div class="role">read-only 리뷰 주력</div><h3>Codex CLI</h3><p>설계리뷰·디버깅. 급여 사이클 클램프 경계 버그(고정비 2회 발생 누락) 발견.</p></div>
+      <div class="agent"><div class="role">리서치</div><h3>Gemini CLI</h3><p>대규모 분석·시장 조사·문서 comprehension.</p></div>
+      <div class="agent"><div class="role">다중 에이전트 fan-out</div><h3>Workflow</h3><p>기능 점수화·8축 감사·엥겔 리서치·급여사이클 설계를 병렬 채점·종합.</p></div>
+    </div>
+    <p class="note" style="margin-top:14px">의사결정 원칙: 모든 결정은 <b>리서치·수치 채점</b>으로 뒷받침. 추측 대신 근거.</p>
+  </section>
+
+  <section>
+    <h2><span class="dot"></span>최종 상태</h2>
+    <div class="pills">
+      <span class="pill">pytest <b>587</b></span>
+      <span class="pill">vitest <b>13</b></span>
+      <span class="pill">커버리지 <b>84%</b></span>
+      <span class="pill">CI 머지게이트</span>
+      <span class="pill">/health · /ready</span>
+      <span class="pill">마이그레이션 <b>11</b></span>
+      <span class="pill">백업 브랜치·태그</span>
+      <span class="pill">성숙도 <b>90 / A</b></span>
+    </div>
+    <p class="note" style="margin-top:16px"><b>잔여 갭(범용 확장 시 후순위)</b>: budgets 트리거 search_path · CSP 헤더 · E2E 테스트 · 마이그레이션 drift 검증 · 멀티 급여일 · 과거 사이클 네비게이션.</p>
+  </section>
+
+  <footer>
+    아이디어 → 시장검증 → 멀티에이전트 설계 → 풀스택 구현 → 배포 → dogfooding → 페르소나 테스트 → 성숙도 A(90)<br/>
+    한 제품의 라이프사이클을 완주.
+  </footer>
+
+</div>
+</body>
+</html>
