@@ -1,7 +1,7 @@
 import { useAutoAnimate } from "@formkit/auto-animate/react";
 import { useState } from "react";
 import { CategoryIcon } from "../../lib/categoryIcon";
-import { colorForCategory, formatKRW } from "../../lib/money";
+import { colorForCategory, formatKRW, formatTimeKST } from "../../lib/money";
 import type { Category, Transaction } from "../../lib/types";
 
 interface Props {
@@ -82,6 +82,7 @@ function TxRow({ tx, categories, name, onDelete, onRecategorize }: RowProps) {
           >
             {tx.direction === "transfer" ? "이체 · " : ""}
             {name} · {tx.occurred_on.slice(5)}
+            <span className="tx-time"> {formatTimeKST(tx.created_at)}</span>
             <span className="tx-edit-hint">✎</span>
           </button>
         )}

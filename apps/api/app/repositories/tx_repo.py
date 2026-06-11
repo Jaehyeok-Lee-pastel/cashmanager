@@ -21,7 +21,13 @@ def list_transactions(
     )
     if category_id:
         query = query.eq("category_id", category_id)
-    response = query.order("occurred_on", desc=True).limit(limit).execute()
+    # created_at as a tiebreaker so same-day entries keep a stable newest-first order
+    response = (
+        query.order("occurred_on", desc=True)
+        .order("created_at", desc=True)
+        .limit(limit)
+        .execute()
+    )
     return response.data or []
 
 
@@ -42,6 +48,7 @@ def list_all(user_id: str) -> list[dict]:
             .select(_COLS)
             .eq("user_id", user_id)
             .order("occurred_on", desc=True)
+            .order("created_at", desc=True)
             .range(start, start + _EXPORT_PAGE - 1)
             .execute()
         )

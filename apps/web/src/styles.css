@@ -706,6 +706,10 @@ label {
   align-items: center;
   gap: var(--space-1);
 }
+.tx-time {
+  color: var(--color-text-3);
+  font-variant-numeric: tabular-nums;
+}
 .tx-edit-hint {
   opacity: 0;
   font-size: 11px;

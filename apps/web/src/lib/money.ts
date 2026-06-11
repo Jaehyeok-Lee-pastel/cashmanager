@@ -3,6 +3,19 @@ export function formatKRW(amountMinor: number): string {
   return `${amountMinor.toLocaleString("ko-KR")}원`;
 }
 
+/** Format an ISO timestamp (UTC) as the KST wall-clock time, e.g. "14:14".
+ *  Used to show WHEN a record was written (created_at), down to the minute. */
+export function formatTimeKST(iso: string): string {
+  const d = new Date(iso);
+  if (Number.isNaN(d.getTime())) return "";
+  return d.toLocaleTimeString("ko-KR", {
+    timeZone: "Asia/Seoul",
+    hour: "2-digit",
+    minute: "2-digit",
+    hour12: false,
+  });
+}
+
 /** Deterministically map a category id to one of the 8 palette tokens (--cat-1..8). */
 export function colorForCategory(id: string | null): string {
   if (!id) return "var(--color-text-3)";

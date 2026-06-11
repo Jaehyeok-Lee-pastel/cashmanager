@@ -1,5 +1,12 @@
 import { describe, expect, it } from "vitest";
-import { colorForCategory, currentMonth, formatKRW, shiftMonth, todayKST } from "./money";
+import {
+  colorForCategory,
+  currentMonth,
+  formatKRW,
+  formatTimeKST,
+  shiftMonth,
+  todayKST,
+} from "./money";
 
 describe("money", () => {
   it("formats KRW with commas", () => {
@@ -24,5 +31,13 @@ describe("money", () => {
   it("produces well-formed KST month/day strings", () => {
     expect(currentMonth()).toMatch(/^\d{4}-\d{2}$/);
     expect(todayKST()).toMatch(/^\d{4}-\d{2}-\d{2}$/);
+  });
+
+  it("formats a UTC timestamp as KST wall-clock time", () => {
+    // 05:14 UTC + 9h = 14:14 KST
+    expect(formatTimeKST("2026-06-11T05:14:00Z")).toMatch(/14.?14/);
+    // crossing midnight: 16:30 UTC = 01:30 KST next day
+    expect(formatTimeKST("2026-06-11T16:30:00Z")).toMatch(/01.?30/);
+    expect(formatTimeKST("not-a-date")).toBe("");
   });
 });
