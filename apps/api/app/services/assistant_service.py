@@ -2,7 +2,7 @@ import logging
 
 from app.core.timeutils import prev_month, today_kst
 from app.schemas.analysis import AssistantAnswer
-from app.services import openai_service, summary_service
+from app.services import openai_service, profile_service, summary_service
 
 logger = logging.getLogger(__name__)
 
@@ -32,9 +32,11 @@ def _build_context(user_id: str) -> str:
     today = today_kst()
     current = f"{today.year:04d}-{today.month:02d}"
     months = [current] + [prev_month(current, i) for i in range(1, _CONTEXT_MONTHS)]
+    # current month follows the pay cycle so the AI's numbers match the 요약 screen
+    anchor = profile_service.get_pay_anchor_day(user_id)
     lines: list[str] = []
     for month in months:
-        s = summary_service.get_monthly_summary(user_id, month)
+        s = summary_service.get_monthly_summary(user_id, month, anchor)
         if not s.by_category and s.total_income == 0:
             lines.append(f"[{month}] 기록 없음")
             continue

@@ -23,11 +23,12 @@ def _cat(name, sum_minor, limit=None):
 
 @pytest.fixture(autouse=True)
 def _no_coach(monkeypatch):
-    # keep tests deterministic: coaching LLM call is skipped
+    # keep tests deterministic: coaching LLM call skipped, calendar-month mode
     monkeypatch.setattr(
         "app.services.openai_service.complete",
         lambda *a, **k: (_ for _ in ()).throw(RuntimeError("no llm")),
     )
+    monkeypatch.setattr("app.services.profile_service.get_pay_anchor_day", lambda uid: None)
 
 
 def test_budget_thresholds(monkeypatch):
@@ -38,7 +39,7 @@ def test_budget_thresholds(monkeypatch):
     ])
     prev = _summary("2026-05", 0, [])
 
-    def fake(uid, month):
+    def fake(uid, month, anchor=None):
         return cur if month == "2026-06" else prev
 
     monkeypatch.setattr("app.services.summary_service.get_monthly_summary", fake)
@@ -60,7 +61,7 @@ def test_mom_trend(monkeypatch):
     prev = _summary("2026-05", 100000, [_cat("식비", 100000)])
     monkeypatch.setattr(
         "app.services.summary_service.get_monthly_summary",
-        lambda uid, m: cur if m == "2026-06" else prev,
+        lambda uid, m, a=None: cur if m == "2026-06" else prev,
     )
     cards = insights_service.get_insights("u1", "2026-06")
     trend = next(c for c in cards if c.type == "trend")

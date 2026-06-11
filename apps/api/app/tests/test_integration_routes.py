@@ -81,6 +81,26 @@ def test_recurring_list_and_create(client, monkeypatch):
     assert res.json()["amount_minor"] == 500000
 
 
+def test_summary_cycle_mode_returns_window(client, monkeypatch):
+    from app.core.timeutils import today_kst
+
+    today = today_kst()
+    month = f"{today.year:04d}-{today.month:02d}"
+    monkeypatch.setattr("app.services.profile_service.get_pay_anchor_day", lambda uid: 10)
+    monkeypatch.setattr("app.repositories.tx_repo.list_for_summary", lambda uid, s, e: [
+        {"amount_minor": 5000, "direction": "expense", "category_id": "c1", "parse_meta": None},
+    ])
+    monkeypatch.setattr("app.repositories.category_repo.list_categories", lambda uid: [{"id": "c1", "name": "식비", "emoji": None}])
+    monkeypatch.setattr("app.repositories.budget_repo.list_budgets", lambda uid: [{"category_id": "c1", "limit_minor": 300000}])
+    monkeypatch.setattr("app.repositories.recurring_repo.list_rules", lambda uid: [])
+
+    body = client.get(f"/summary?month={month}").json()
+    assert body["cycle_start"] is not None and body["cycle_end"] is not None
+    assert body["days_to_payday"] is not None and body["days_to_payday"] >= 1
+    assert body["total_expense"] == 5000
+    assert body["safe_to_spend"] is not None  # budget set -> Safe-to-Spend computed
+
+
 def test_requires_auth_without_override():
     # no override -> the real dependency rejects an unauthenticated request
     res = TestClient(app).get("/budgets")

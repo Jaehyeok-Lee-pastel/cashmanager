@@ -198,14 +198,20 @@ def test_is_card_payment(text: str, expected: bool):
     ("주식 50만 샀어", True),
     ("삼성전자 100만 매수", True),
     ("펀드 30만 납입", True),
-    ("적금 20만", True),
+    ("적금 20만 넣었어", True),
     ("비트코인 10만 샀어", True),
     ("etf 50만 매수", True),
     ("투자 50만원", True),
+    # NOT outgoing investments (verb guard + redemption/fee exclusion)
     ("주식 공부 책 2만", False),   # buying a book about stocks = expense
     ("주식 강의 5만", False),
     ("배당금 5만", False),         # dividend = income, not an outflow
     ("예금 이자 3천", False),
+    ("펀드 수수료 5000", False),   # a fee = expense, not a transfer
+    ("적금 깼다 50만원", False),   # withdrawal = cash in, not transfer-out
+    ("펀드 환매 100만", False),
+    ("적금 해지 200만", False),
+    ("적금 만기 300만", False),
     ("맥날 5500", False),
     ("주차비 3000", False),
 ])

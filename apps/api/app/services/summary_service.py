@@ -114,6 +114,14 @@ def get_monthly_summary(
     )
 
 
+def cycle_total_expense(user_id: str, anchor: int, ref_date: date) -> int:
+    """Total expense for the pay cycle containing ref_date — lets insights compare
+    against the PREVIOUS full cycle instead of a misaligned calendar month."""
+    start, end = cycle_bounds(ref_date, anchor)
+    rows = tx_repo.list_for_summary(user_id, start, end)
+    return sum(r["amount_minor"] for r in rows if r["direction"] == "expense")
+
+
 def _is_investment_row(row: dict, names: dict[str, tuple[str, str | None]]) -> bool:
     """A transfer that is an investment (route tag from NL, or category '투자')."""
     if row.get("direction") != "transfer":

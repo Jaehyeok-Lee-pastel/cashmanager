@@ -1,10 +1,11 @@
 import logging
 import time
+from datetime import date, timedelta
 
 from app.core.timeutils import prev_month
 from app.schemas.analysis import InsightCard
 from app.schemas.summary import MonthlySummaryOut
-from app.services import summary_service
+from app.services import profile_service, summary_service
 
 logger = logging.getLogger(__name__)
 
@@ -25,7 +26,10 @@ def _won(n: int) -> str:
 
 def get_insights(user_id: str, month: str) -> list[InsightCard]:
     """Rule-based monthly insights. Independent of the LLM (always returns)."""
-    summary = summary_service.get_monthly_summary(user_id, month)
+    # use the same pay-cycle window as the summary screen (else 분석탭 shows a
+    # different "이번 달" than 요약탭 — the consistency gap the audit flagged).
+    anchor = profile_service.get_pay_anchor_day(user_id)
+    summary = summary_service.get_monthly_summary(user_id, month, anchor)
     cards: list[InsightCard] = []
 
     # 1) budget alerts (most actionable first)
@@ -54,21 +58,28 @@ def get_insights(user_id: str, month: str) -> list[InsightCard]:
         if c.sum_minor >= c.limit_minor * _WARN_RATIO:
             continue  # already alerted/warned by the loop above
         if c.projected_minor >= c.limit_minor * _PACE_OVERAGE:
+            horizon = "급여일까지" if summary.cycle_start else "월말"
             cards.append(InsightCard(
                 type="budget", severity="warn",
                 title=f"{c.name} 이 속도면 초과 예상",
-                detail=f"이 속도면 월말 {_won(c.projected_minor)} (한도 {_won(c.limit_minor)})",
+                detail=f"이 속도면 {horizon} {_won(c.projected_minor)} (한도 {_won(c.limit_minor)})",
             ))
 
-    # 2) month-over-month trend
-    prev = summary_service.get_monthly_summary(user_id, prev_month(month))
-    if prev.total_expense > 0:
-        change = round((summary.total_expense - prev.total_expense) / prev.total_expense * 100)
+    # 2) period-over-period trend — vs the previous CYCLE in cycle mode, else month.
+    if anchor and summary.cycle_start:
+        prev_ref = date.fromisoformat(summary.cycle_start) - timedelta(days=1)
+        prev_total = summary_service.cycle_total_expense(user_id, anchor, prev_ref)
+        label = "지난 급여달"
+    else:
+        prev_total = summary_service.get_monthly_summary(user_id, prev_month(month)).total_expense
+        label = "지난달"
+    if prev_total > 0:
+        change = round((summary.total_expense - prev_total) / prev_total * 100)
         arrow = "▲" if change > 0 else "▼" if change < 0 else "–"
         cards.append(InsightCard(
             type="trend", severity="info",
-            title=f"지난달 대비 {arrow} {abs(change)}%",
-            detail=f"이번 달 {_won(summary.total_expense)} (지난달 {_won(prev.total_expense)})",
+            title=f"{label} 대비 {arrow} {abs(change)}%",
+            detail=f"이번 달 {_won(summary.total_expense)} ({label} {_won(prev_total)})",
         ))
 
     # 3) top spending category

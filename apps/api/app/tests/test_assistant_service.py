@@ -4,7 +4,7 @@ from app.schemas.summary import MonthlySummaryOut
 from app.services import assistant_service
 
 
-def _empty_summary(_uid, month):
+def _empty_summary(_uid, month, anchor=None):
     return MonthlySummaryOut(
         month=month, total_expense=0, total_income=0, count=0, by_category=[],
     )

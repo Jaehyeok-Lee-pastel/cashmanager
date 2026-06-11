@@ -247,21 +247,29 @@ def is_card_payment(text: str) -> bool:
     return bool(_CARD_PAYMENT_RE.search(text))
 
 
+# Redemptions/withdrawals/fees are NOT outgoing investments — 적금 해지·펀드 환매·
+# 만기 = cash IN (income); 수수료 = an expense; 배당/이자 = income. Guard against them
+# so is_investment doesn't flip the balance the wrong way.
+_INVEST_EXCLUDE_RE = re.compile(r"환매|해지|출금|인출|만기|수수료|깼|깬|찾았|찾아|배당|이자")
+
 # Buying stock / depositing into a fund or savings is moving cash into an asset,
-# NOT consumption -> a transfer (excluded from spending). Conservative: needs a
-# buy/deposit verb near an asset noun, so "주식 공부 책" (a book) stays an expense.
+# NOT consumption -> a transfer (excluded from spending). A buy/deposit verb is
+# REQUIRED near an asset noun (적금/펀드 included) so a bare mention ("주식 공부 책",
+# "펀드 수수료") doesn't count as an outgoing investment.
 _INVEST_RE = re.compile(
     r"매수|매입"
     r"|(?:주식|펀드|적금|예금|채권|국채|코인|비트코인|이더리움|암호화폐|가상화폐|etf|이더)"
-    r"\s*.{0,10}(?:샀|삿|납입|적립|불입|투자)"
-    r"|(?:적금|펀드)(?:\s|에|을|를|$)"
+    r"\s*.{0,10}(?:샀|삿|납입|적립|불입|투자|넣)"
     r"|투자\s*\d",
     re.IGNORECASE,
 )
 
 
 def is_investment(text: str) -> bool:
-    """True for a stock/fund/savings purchase or deposit (-> transfer)."""
+    """True for a stock/fund/savings purchase or deposit (-> transfer). Excludes
+    redemptions/withdrawals/fees (적금 해지·펀드 환매·수수료) — those are income/expense."""
+    if _INVEST_EXCLUDE_RE.search(text):
+        return False
     return bool(_INVEST_RE.search(text))
 
 
