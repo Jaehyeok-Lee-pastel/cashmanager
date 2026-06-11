@@ -6,6 +6,7 @@ export interface Profile {
   id: string;
   email: string;
   display_name: string | null;
+  pay_anchor_day: number | null; // payday (1~31); null = calendar-month budget
 }
 
 export interface Category {
@@ -117,4 +118,7 @@ export interface MonthlySummary {
   upcoming_fixed_minor: number | null; // fixed costs still due this month
   invested_minor: number | null; // moved into investments this month
   investment_target_minor: number | null; // 투자 category budget (monthly target)
+  cycle_start: string | null; // pay-cycle window start (ISO), null in calendar mode
+  cycle_end: string | null; // pay-cycle window end, inclusive (ISO)
+  days_to_payday: number | null; // days remaining until the next payday
 }

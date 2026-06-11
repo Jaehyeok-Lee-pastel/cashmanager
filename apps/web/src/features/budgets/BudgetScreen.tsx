@@ -5,6 +5,8 @@ import {
   deleteBudget,
   getBudgetSuggestions,
   getBudgetTemplate,
+  getMe,
+  updatePayday,
   upsertBudgets,
 } from "../../lib/budget";
 import { CategoryIcon } from "../../lib/categoryIcon";
@@ -24,6 +26,27 @@ export function BudgetScreen() {
   const [notice, setNotice] = useState<string | null>(null);
   const [income, setIncome] = useState("");
   const [invest, setInvest] = useState("");
+  const [payday, setPayday] = useState(""); // payday (1~31) or "" for calendar month
+
+  useEffect(() => {
+    getMe(token)
+      .then((p) => setPayday(p.pay_anchor_day ? String(p.pay_anchor_day) : ""))
+      .catch(() => {});
+  }, [token]);
+
+  async function savePayday() {
+    const n = Number(payday.replace(/[^\d]/g, ""));
+    const value = n >= 1 && n <= 31 ? n : null;
+    try {
+      await updatePayday(value, token);
+      setPayday(value ? String(value) : "");
+      setNotice(
+        value ? `급여일을 매월 ${value}일로 설정했어요.` : "급여일을 해제했어요(1일 기준).",
+      );
+    } catch {
+      setNotice("급여일 저장에 실패했어요.");
+    }
+  }
 
   useEffect(() => {
     if (budgets) {
@@ -142,6 +165,29 @@ export function BudgetScreen() {
           </button>
         </div>
       </details>
+
+      <div className="payday-setting">
+        <label htmlFor="payday-input">급여일 설정</label>
+        <p className="muted">
+          월급 받는 날에 맞춰 ‘한 달’을 계산해요. 그러면 “오늘 쓸 수 있어요”가 매달 1일에
+          초기화되지 않고 다음 급여일까지 이어집니다. 비우면 1일~말일 기준이에요.
+        </p>
+        <div className="onboard-row">
+          <input
+            id="payday-input"
+            type="text"
+            inputMode="numeric"
+            className="budget-input"
+            aria-label="급여일 (매월 며칠)"
+            placeholder="매월 며칠 (예: 10)"
+            value={payday}
+            onChange={(e) => setPayday(e.target.value)}
+          />
+          <button type="button" className="ghost" onClick={savePayday}>
+            저장
+          </button>
+        </div>
+      </div>
 
       {notice && <p className="status" role="status">{notice}</p>}
 

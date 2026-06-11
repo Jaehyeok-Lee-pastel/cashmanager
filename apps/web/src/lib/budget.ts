@@ -18,6 +18,8 @@ import type {
 export const getMe = (token: string) => apiGet<Profile>("/me", token);
 export const updateMe = (displayName: string, token: string) =>
   apiPatch<Profile>("/me", { display_name: displayName }, token);
+export const updatePayday = (payAnchorDay: number | null, token: string) =>
+  apiPatch<Profile>("/me", { pay_anchor_day: payAnchorDay }, token);
 
 // --- Categories ---
 export const listCategories = (token: string) =>

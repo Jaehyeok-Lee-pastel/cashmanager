@@ -932,6 +932,21 @@ label {
 .invest-line .label {
   color: var(--color-text-2);
 }
+.safe-payday {
+  margin-top: var(--space-1);
+  font-size: var(--text-xs);
+  font-weight: 600;
+  opacity: 0.92;
+}
+.payday-setting {
+  margin: var(--space-4) 0;
+  padding: var(--space-3);
+  border: 1px solid var(--color-hairline);
+  border-radius: var(--radius-md);
+}
+.payday-setting label {
+  font-weight: 600;
+}
 .pace-line strong {
   color: var(--color-text-1);
   font-variant-numeric: tabular-nums;

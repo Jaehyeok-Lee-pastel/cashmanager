@@ -58,13 +58,23 @@ export function SummaryScreen({ month, onMonthChange }: Props) {
     ? summary.total_income - summary.total_expense - (summary.invested_minor ?? 0)
     : 0;
 
+  // "2026-06-10" -> "6.10"; cycle window label "6.10 – 7.9" when in pay-cycle mode.
+  const fmtMD = (iso: string) => {
+    const [, m, d] = iso.split("-");
+    return `${Number(m)}.${Number(d)}`;
+  };
+  const cycleLabel =
+    summary?.cycle_start && summary?.cycle_end
+      ? `${fmtMD(summary.cycle_start)} – ${fmtMD(summary.cycle_end)}`
+      : null;
+
   return (
     <div className="summary-screen">
       <div className="month-nav">
         <button type="button" aria-label="이전 달" onClick={() => onMonthChange(shiftMonth(month, -1))}>
           ‹
         </button>
-        <strong>{month}</strong>
+        <strong>{cycleLabel ?? month}</strong>
         <button type="button" aria-label="다음 달" onClick={() => onMonthChange(shiftMonth(month, 1))}>
           ›
         </button>
@@ -82,7 +92,9 @@ export function SummaryScreen({ month, onMonthChange }: Props) {
                   <div className="safe-label">오늘 쓸 수 있어요</div>
                   <div className="safe-amount">{formatKRW(summary.daily_allowance)}</div>
                   <div className="safe-sub">
-                    이번 달 남은 예산 {formatKRW(summary.safe_to_spend)}
+                    {summary.cycle_end != null
+                      ? `${fmtMD(summary.cycle_end)}까지 · 남은 예산 ${formatKRW(summary.safe_to_spend)}`
+                      : `이번 달 남은 예산 ${formatKRW(summary.safe_to_spend)}`}
                     {summary.upcoming_fixed_minor != null && (
                       <> · 고정비 {formatKRW(summary.upcoming_fixed_minor)} 차감</>
                     )}
@@ -90,6 +102,9 @@ export function SummaryScreen({ month, onMonthChange }: Props) {
                       <> · 투자 {formatKRW(summary.invested_minor)} 차감</>
                     )}
                   </div>
+                  {summary.days_to_payday != null && (
+                    <div className="safe-payday">다음 급여일까지 {summary.days_to_payday}일</div>
+                  )}
                 </>
               ) : (
                 <>
@@ -97,6 +112,9 @@ export function SummaryScreen({ month, onMonthChange }: Props) {
                   <div className="safe-amount over">
                     {formatKRW(Math.abs(summary.safe_to_spend))} 초과
                   </div>
+                  {summary.days_to_payday != null && (
+                    <div className="safe-payday">다음 급여일까지 {summary.days_to_payday}일</div>
+                  )}
                 </>
               )}
             </div>
@@ -115,7 +133,8 @@ export function SummaryScreen({ month, onMonthChange }: Props) {
               </div>
               {summary.projected_expense != null && (
                 <div className="pace-line">
-                  이 속도면 월말 예상 <strong>{formatKRW(summary.projected_expense)}</strong>
+                  이 속도면 {cycleLabel ? "급여일까지" : "월말"} 예상{" "}
+                  <strong>{formatKRW(summary.projected_expense)}</strong>
                 </div>
               )}
             </>
